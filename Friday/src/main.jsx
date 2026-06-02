@@ -119,15 +119,39 @@ function speak(text, agent, voices) {
   window.speechSynthesis.speak(utterance);
 }
 
+async function readJsonResponse(res) {
+  const text = await res.text();
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Local server returned non-JSON output on ${res.url}. Restart the Friday server, then try again.`);
+  }
+}
+
 async function api(path, body) {
-  const res = await fetch(`${API}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {}),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Friday server request failed');
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {}),
+    });
+  } catch {
+    throw new Error('Local server is offline. Start it with npm run server in a separate PowerShell window.');
+  }
+  const json = await readJsonResponse(res);
+  if (!res.ok) throw new Error(json.error || `Friday server request failed with HTTP ${res.status}`);
   return json;
+}
+
+async function healthCheck() {
+  try {
+    const res = await fetch(`${API}/health`);
+    return await readJsonResponse(res);
+  } catch {
+    return null;
+  }
 }
 
 function useClock() {
@@ -148,7 +172,7 @@ function App() {
   const [mode, setMode] = useState('LOCAL');
   const [status, setStatus] = useState('STARTING');
   const [server, setServer] = useState(null);
-  const [response, setResponse] = useState('Friday online. Local-first Aidlyst command center initialized. I can use hot memory now; connect the local server and OpenAI API key for full command behavior. Very dramatic, but also useful.');
+  const [response, setResponse] = useState('Friday online. Local-first Aidlyst command center initialized. Start the local server on 8788 for OpenAI, Obsidian, files, and apps.');
   const [sources, setSources] = useState([]);
   const [history, setHistory] = useState([]);
   const [files, setFiles] = useState([]);
@@ -160,14 +184,17 @@ function App() {
   const activeAgent = getAgent(activeAgentId);
   const AgentIcon = activeAgent.icon;
 
+  const refreshHealth = async () => {
+    const data = await healthCheck();
+    setServer(data);
+    if (!data) setStatus('LOCAL SERVER OFFLINE');
+    else setStatus(data.openaiConfigured ? 'SERVER + AI ONLINE' : 'SERVER ONLINE · API KEY NEEDED');
+  };
+
   useEffect(() => {
-    fetch(`${API}/health`).then((res) => res.json()).then((data) => {
-      setServer(data);
-      setStatus(data.openaiConfigured ? 'SERVER + AI ONLINE' : 'SERVER ONLINE · API KEY NEEDED');
-    }).catch(() => {
-      setStatus('LOCAL SERVER OFFLINE');
-      setServer(null);
-    });
+    refreshHealth();
+    const timer = window.setInterval(refreshHealth, 5000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const run = async (text) => {
@@ -177,7 +204,7 @@ function App() {
     setInput(command);
     setMode('THINKING');
     setStatus(`${agent.name.toUpperCase()} ROUTING`);
-    setResponse(`${agent.name}: On it. Checking the local brain first, then I’ll answer like a normal human and not a bullet-point machine.`);
+    setResponse(`${agent.name}: On it. I’m checking the local brain first, then I’ll answer like a normal human and not a bullet-point machine.`);
 
     try {
       let brain = { sources: [] };
@@ -190,8 +217,9 @@ function App() {
       setStatus('READY');
       setHistory((items) => [{ command, mode: ai.offline ? 'LOCAL' : 'AI', agent: agent.name, time: new Date().toLocaleTimeString() }, ...items].slice(0, 7));
       speak(final, agent, voices);
+      refreshHealth();
     } catch (error) {
-      const fallback = `${agent.name}: I tried to route that through the local server, but hit this: ${error.message}. Check that the server is running on 8788 and that your .env is configured. Tiny inconvenience. We continue.`;
+      const fallback = `${agent.name}: I could not complete that route. ${error.message} If the UI is up but the server reads OFF, open a second PowerShell window and run npm run server from the Friday folder.`;
       setResponse(fallback);
       setStatus('ACTION FAILED');
       speak(fallback, agent, voices);
@@ -221,7 +249,7 @@ function App() {
     setActiveModule(module.name);
     setActiveAgentId(module.agent);
     const agent = getAgent(module.agent);
-    const msg = `${agent.name} is now active for ${module.name}. ${agent.role} loaded. I will keep the theatrics tasteful.`;
+    const msg = `${agent.name} is now active for ${module.name}. ${agent.role} loaded. I’ll keep the theatrics tasteful.`;
     setResponse(msg);
     speak(msg, agent, voices);
   };
@@ -232,6 +260,7 @@ function App() {
       const msg = `${activeAgent.name}: ${result.app} launched locally. Assuming Windows cooperated, which is always a bold assumption.`;
       setResponse(msg);
       speak(msg, activeAgent, voices);
+      refreshHealth();
     } catch (error) {
       setResponse(`${activeAgent.name}: I could not launch ${name}. ${error.message}`);
     }
@@ -239,9 +268,10 @@ function App() {
 
   const listLocal = async () => {
     try {
-      const result = await api('/local/list', { path: `${window.navigator.userAgent.includes('Windows') ? 'C:/Users/omkar/Desktop/Aidlyst' : '.'}` });
+      const result = await api('/local/list', { path: 'C:/Users/omkar/Desktop/Aidlyst' });
       setFiles(result.entries || []);
       setResponse(`${activeAgent.name}: I pulled the local Aidlyst folder listing. Nothing exploded. That is progress.`);
+      refreshHealth();
     } catch (error) {
       setResponse(`${activeAgent.name}: File listing failed. ${error.message}`);
     }
