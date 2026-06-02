@@ -9,7 +9,9 @@
 
 {% liquid
   assign block_settings = block.settings
-  assign plain_text = block_settings.text | strip_newlines | strip
+  assign rendered_text = block_settings.text | replace: 'MediDeal', 'Aidlyst' | replace: 'Medideal', 'Aidlyst' | replace: 'medideal', 'Aidlyst'
+  assign rendered_fallback_text = fallback_text | replace: 'MediDeal', 'Aidlyst' | replace: 'Medideal', 'Aidlyst' | replace: 'medideal', 'Aidlyst'
+  assign plain_text = rendered_text | strip_newlines | strip
   assign visible_text = plain_text | strip_html
   assign text_width = width | default: block_settings.width
 
@@ -83,13 +85,13 @@
   endif
 %}
 
-{% if fallback_text != blank and visible_text == blank %}
+{% if rendered_fallback_text != blank and visible_text == blank %}
   <div {{ attributes | strip_newlines | strip }}>
-    {{ fallback_text }}
+    {{ rendered_fallback_text }}
   </div>
 {% elsif plain_text != blank %}
   <{{ element }} {{ attributes | strip_newlines | strip }}>
-    {{ block.settings.text }}
+    {{ rendered_text }}
   </{{ element }}>
 {% endif %}
 

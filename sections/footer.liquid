@@ -44,6 +44,24 @@
   >
     {% content_for 'blocks' %}
   </div>
+
+  <div class="aidlyst-footer-compliance" aria-label="Aidlyst compliance links and disclosures">
+    <nav class="aidlyst-footer-compliance__links" aria-label="Aidlyst policy links">
+      <a href="/pages/medical-disclaimer">Medical Disclaimer</a>
+      <a href="/pages/affiliate-disclosure">Affiliate Disclosure</a>
+      <a href="/policies/privacy-policy">Privacy Policy</a>
+      <a href="/policies/terms-of-service">Terms of Use</a>
+      <a href="/pages/contact">Contact</a>
+    </nav>
+    <p class="aidlyst-footer-compliance__short">
+      Aidlyst does not provide medical advice, diagnosis, or treatment. Some products may require consultation with a
+      licensed healthcare professional.
+    </p>
+    <p class="aidlyst-footer-compliance__affiliate">
+      Paid links may be used. As an Amazon Associate, Aidlyst earns from qualifying purchases.
+    </p>
+    {% render 'medical-disclaimer', context: 'footer', compact: true %}
+  </div>
 </div>
 
 {% stylesheet %}
@@ -88,6 +106,37 @@
     .footer-content--isolated-grid-item-desktop > :last-child {
       grid-column: 1 / -1;
     }
+  }
+
+  .aidlyst-footer-compliance {
+    display: grid;
+    gap: 12px;
+    margin-block-start: 28px;
+    padding-block-start: 20px;
+    border-top: 1px solid rgb(var(--color-border-rgb) / 0.18);
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .aidlyst-footer-compliance__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+
+  .aidlyst-footer-compliance__links a {
+    color: inherit;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .aidlyst-footer-compliance__links a:hover {
+    color: var(--color-foreground);
+  }
+
+  .aidlyst-footer-compliance p {
+    margin: 0;
   }
 {% endstylesheet %}
 

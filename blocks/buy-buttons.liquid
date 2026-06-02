@@ -6,7 +6,7 @@
     assign product = collections.all.products.first
   endif
 
-  assign variant = closest.product.selected_or_first_available_variant
+  assign variant = product.selected_or_first_available_variant
   assign inventory_quantity = variant.inventory_quantity
   assign inventory_policy = variant.inventory_policy
 
@@ -35,11 +35,81 @@
   endif
 %}
 
+{% capture product_sale_type_render %}{% render 'product-sale-type', product_resource: product %}{% endcapture %}
+{% assign product_sale_type = product_sale_type_render | strip | default: 'affiliate' %}
+{% capture primary_supplier_url_render %}{% render 'product-primary-supplier-url', product_resource: product %}{% endcapture %}
+{% assign primary_supplier_url = primary_supplier_url_render | strip %}
+
 <span
   class="buy-buttons-block buy-buttons-block--{{ block.id }}"
   {{ block.shopify_attributes }}
 >
-  {%- if product != blank -%}
+  {%- if product != blank and product_sale_type != 'direct' -%}
+    {%- liquid
+      assign partner_cta_label = 'View Partner Product'
+      assign partner_notice_heading = 'Continue with a partner'
+      assign partner_notice_copy = 'This product is fulfilled or supported by an external partner. Review current pricing, availability, eligibility, and checkout details on the partner site.'
+      assign partner_fallback_url = '/pages/contact'
+      assign partner_fallback_label = 'Contact Aidlyst'
+
+      if product_sale_type == 'provider_required'
+        assign partner_cta_label = 'Request More Information'
+        assign partner_notice_heading = 'Provider guidance may be required'
+        assign partner_notice_copy = 'This product may require medical guidance, a prescription, professional fitting, or provider approval before use. Please consult a licensed healthcare professional before purchasing or using this product.'
+        assign partner_fallback_label = 'Request More Information'
+      endif
+
+      assign partner_cta_url = primary_supplier_url | default: partner_fallback_url
+      assign partner_link_external = false
+      if partner_cta_url contains '://'
+        assign partner_link_external = true
+      endif
+    -%}
+
+    <div
+      class="aidlyst-partner-cta aidlyst-partner-cta--{{ product_sale_type }} spacing-style"
+      style="{% render 'spacing-style', settings: block_settings %}"
+      data-aidlyst-sale-type="{{ product_sale_type }}"
+    >
+      <div class="aidlyst-partner-cta__notice">
+        <span class="aidlyst-partner-cta__eyebrow">
+          {%- if product_sale_type == 'provider_required' -%}
+            Provider-guided product
+          {%- else -%}
+            Partner product
+          {%- endif -%}
+        </span>
+        <h2>{{ partner_notice_heading }}</h2>
+        <p>{{ partner_notice_copy }}</p>
+      </div>
+
+      <a
+        class="button aidlyst-partner-cta__button"
+        href="{{ partner_cta_url }}"
+        {% if partner_link_external %}target="_blank" rel="noopener noreferrer sponsored"{% endif %}
+        data-aidlyst-link-type="{% if partner_link_external %}supplier{% else %}internal{% endif %}"
+        data-aidlyst-supplier="{% if partner_link_external %}Primary partner{% endif %}"
+        data-aidlyst-product-id="{{ product.id }}"
+        data-aidlyst-product-title="{{ product.title | escape }}"
+        data-aidlyst-sale-type="{{ product_sale_type }}"
+      >
+        {%- if primary_supplier_url != blank -%}
+          {{ partner_cta_label }}
+        {%- else -%}
+          {{ partner_fallback_label }}
+        {%- endif -%}
+      </a>
+
+      {%- if product_sale_type == 'affiliate' -%}
+        <p class="aidlyst-partner-cta__disclosure">
+          Disclosure: This may be a paid partner link. We may earn compensation if you request information or purchase
+          through this link.
+        </p>
+      {%- endif -%}
+
+      {% render 'medical-disclaimer', context: product_sale_type, compact: true %}
+    </div>
+  {%- elsif product != blank -%}
     {%- assign product_form_id = 'BuyButtons-ProductForm-' | append: section.id -%}
     <product-form-component
       data-section-id="{{ section.id }}"
@@ -250,7 +320,7 @@
   {%- endif -%}
 </span>
 
-{% if block_settings.show_pickup_availability %}
+{% if block_settings.show_pickup_availability and product_sale_type == 'direct' %}
   <script
     src="{{ 'local-pickup.js' | asset_url }}"
     type="module"

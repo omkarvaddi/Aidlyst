@@ -1,0 +1,48 @@
+{%- liquid
+  assign product_resource = product | default: closest.product
+-%}
+
+{%- if product_resource != blank -%}
+{%- liquid
+
+  capture product_sale_type_render
+    render 'product-sale-type', product_resource: product_resource
+  endcapture
+  assign product_sale_type = product_sale_type_render | strip | default: 'affiliate'
+
+  assign supplier_keys = 'supplier_url,amazon_url,walmart_url,target_url,cvs_url,walgreens_url,best_buy_url,medline_url,ebay_url,costco_url,home_depot_url,wayfair_url' | split: ','
+  assign supplier_handles = ''
+  assign supplier_count = 0
+
+  for supplier_key in supplier_keys
+    assign supplier_key = supplier_key | strip
+    assign supplier_metafield = product_resource.metafields.custom[supplier_key]
+    assign supplier_url = supplier_metafield.value | default: supplier_metafield
+
+    if supplier_url == blank
+      assign supplier_metafield = product_resource.metafields.deals[supplier_key]
+      assign supplier_url = supplier_metafield.value | default: supplier_metafield
+    endif
+
+    if supplier_url != blank
+      assign supplier_count = supplier_count | plus: 1
+      assign supplier_handle = supplier_key | remove: '_url' | replace: '_', '-'
+      unless supplier_handles contains supplier_handle
+        assign supplier_handles = supplier_handles | append: ' ' | append: supplier_handle
+      endunless
+    endif
+  endfor
+
+  assign product_type = product_resource.type | default: product_resource.collections.first.title
+  assign product_type_handle = product_type | handleize
+-%}
+data-aidlyst-product-title="{{ product_resource.title | escape }}"
+data-aidlyst-product-url="{{ product_resource.url }}"
+data-aidlyst-product-type="{{ product_type_handle }}"
+data-aidlyst-product-type-label="{{ product_type | escape }}"
+data-aidlyst-sale-type="{{ product_sale_type }}"
+data-aidlyst-suppliers="{{ supplier_handles | strip }}"
+data-aidlyst-supplier-count="{{ supplier_count }}"
+data-aidlyst-price="{{ product_resource.price }}"
+data-aidlyst-available="{{ product_resource.available }}"
+{%- endif -%}

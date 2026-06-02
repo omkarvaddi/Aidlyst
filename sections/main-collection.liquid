@@ -35,6 +35,13 @@
   <div
     class="collection-wrapper grid gap-style{% if section.settings.product_grid_width == 'full-width' %} collection-wrapper--grid-full-width{% endif %}"
   >
+    {% render 'aidlyst-catalog-tools',
+      results: collection,
+      products: collection.products,
+      heading: 'Search and filter products',
+      subheading: 'Use product type, purchase path, and supplier filters to narrow the visible catalog.'
+    %}
+
     {% content_for 'block',
       type: 'filters',
       id: 'filters',
@@ -56,6 +63,7 @@
             class="product-grid__item product-grid__item--{{ forloop.index0 }}"
             data-page="{{ paginate.current_page }}"
             data-product-id="{{ product.id }}"
+            {% render 'aidlyst-product-card-data-attributes', product: product %}
             ref="cards[]"
           >
             {% # theme-check-disable %}

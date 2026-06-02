@@ -10,6 +10,7 @@
   @param {string} media_gallery - Captured HTML for the product media gallery block
   @param {string} product_details - Captured HTML for the product details block
   @param {string} additional_blocks - Captured HTML for additional section blocks
+  @param {string} [product_sale_type] - Resolved product sale type
 
   @example
   {% capture media_gallery %}
@@ -35,6 +36,8 @@
 {% enddoc %}
 
 {% liquid
+  assign resolved_product_sale_type = product_sale_type | default: 'direct'
+
   # Determine render order based on media position
   if settings.desktop_media_position == 'left'
     assign render_order = 'media,product-details'
@@ -81,6 +84,7 @@
   class="product-information section section--{{ content_width }} spacing-style color-{{ settings.color_scheme }} relative"
   style="{% render 'spacing-style', settings: settings %} --gap: {{ settings.gap }}px;"
   data-testid="product-information"
+  data-aidlyst-sale-type="{{ resolved_product_sale_type }}"
 >
   {% if settings.desktop_media_position == 'left' and product_has_media and request.page_type == 'product' %}
     {% assign product_href = '#ProductInformation-' | append: section_id %}

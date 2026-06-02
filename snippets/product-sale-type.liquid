@@ -1,0 +1,76 @@
+{%- doc -%}
+  Resolves the commerce flow for a product.
+
+  @param {product} product_resource - The product to classify
+
+  Supported metafield values:
+  - direct
+  - affiliate
+  - provider_required
+{%- enddoc -%}
+
+{%- liquid
+  assign product_resource = product_resource | default: product
+  assign sale_type = ''
+
+  if product_resource != blank
+    assign sale_type_namespaces = 'custom,aidlyst,deals' | split: ','
+    assign sale_type_keys = 'sale_type,product_sale_type,commerce_type,buying_flow' | split: ','
+
+    for namespace in sale_type_namespaces
+      for key in sale_type_keys
+        if sale_type == ''
+          assign sale_type_metafield = product_resource.metafields[namespace][key]
+          assign sale_type_value = sale_type_metafield.value | default: sale_type_metafield
+
+          if sale_type_value != blank
+            assign normalized_sale_type = sale_type_value | strip | downcase | replace: ' ', '_' | replace: '-', '_' | replace: '/', '_'
+
+            case normalized_sale_type
+              when 'direct', 'direct_sale', 'shop_direct', 'direct_checkout', 'shopify_checkout'
+                assign sale_type = 'direct'
+              when 'affiliate', 'partner', 'partner_product', 'partner_device', 'referral', 'external', 'external_partner'
+                assign sale_type = 'affiliate'
+              when 'provider_required', 'provider_guidance', 'provider_guidance_required', 'prescription_required', 'rx_required', 'professional_fitting', 'consultation_required', 'medical_guidance_required'
+                assign sale_type = 'provider_required'
+            endcase
+          endif
+        endif
+      endfor
+    endfor
+
+    if sale_type == ''
+      for product_tag in product_resource.tags
+        assign normalized_tag = product_tag | strip | downcase | replace: ' ', '_' | replace: '-', '_' | replace: '/', '_'
+
+        case normalized_tag
+          when 'sale_type_direct', 'sale_type:direct', 'direct_sale', 'shop_direct'
+            assign sale_type = 'direct'
+          when 'sale_type_affiliate', 'sale_type:affiliate', 'partner_product', 'partner_device', 'affiliate_product'
+            assign sale_type = 'affiliate'
+          when 'sale_type_provider_required', 'sale_type:provider_required', 'provider_required', 'provider_guidance_required', 'prescription_required', 'rx_required'
+            assign sale_type = 'provider_required'
+        endcase
+      endfor
+    endif
+
+    if sale_type == ''
+      assign product_type_normalized = product_resource.type | strip | downcase
+      assign product_title_normalized = product_resource.title | strip | downcase
+
+      if product_type_normalized contains 'first aid' or product_type_normalized contains 'wound' or product_type_normalized contains 'recovery' or product_type_normalized contains 'wellness' or product_type_normalized contains 'daily care' or product_type_normalized contains 'personal care'
+        assign sale_type = 'direct'
+      elsif product_type_normalized contains 'hearing' or product_type_normalized contains 'respiratory' or product_type_normalized contains 'cpap' or product_type_normalized contains 'oxygen' or product_type_normalized contains 'diabetes' or product_title_normalized contains 'cpap' or product_title_normalized contains 'oxygen concentrator' or product_title_normalized contains 'hearing aid'
+        assign sale_type = 'provider_required'
+      else
+        assign sale_type = 'affiliate'
+      endif
+    endif
+  endif
+
+  if sale_type == ''
+    assign sale_type = 'affiliate'
+  endif
+
+  echo sale_type
+-%}

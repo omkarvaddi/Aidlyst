@@ -1,0 +1,93 @@
+{%- liquid
+  assign heading = heading | default: 'Find the right product faster'
+  assign subheading = subheading | default: 'Search Aidlyst and narrow the visible catalog by type, purchase path, or supplier coverage.'
+  assign search_value = ''
+  if search.terms != blank
+    assign search_value = search.terms
+  endif
+
+  assign type_source = ''
+  if results.all_types != blank
+    assign type_source = results.all_types
+  endif
+-%}
+
+<section class="aidlyst-catalog-tools" aria-label="Catalog search and filters">
+  <div class="aidlyst-catalog-tools__copy">
+    <h2>{{ heading }}</h2>
+    <p>{{ subheading }}</p>
+  </div>
+
+  <form class="aidlyst-catalog-tools__search" action="{{ routes.search_url }}" method="get" role="search">
+    <label class="visually-hidden" for="AidlystCatalogSearch-{{ section.id }}">Search products</label>
+    <input
+      id="AidlystCatalogSearch-{{ section.id }}"
+      type="search"
+      name="q"
+      value="{{ search_value | escape }}"
+      placeholder="Search stethoscopes, braces, monitors..."
+      autocomplete="off"
+    >
+    <input type="hidden" name="type" value="product">
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="aidlyst-catalog-tools__filters" data-aidlyst-catalog-filters>
+    <div class="aidlyst-catalog-tools__group" aria-label="Product type filters">
+      <span class="aidlyst-catalog-tools__label">Type</span>
+      <button type="button" class="aidlyst-catalog-tools__chip is-active" data-aidlyst-filter="all">All</button>
+      {%- if type_source != blank -%}
+        {%- for product_type in type_source limit: 8 -%}
+          {%- if product_type != blank -%}
+            <button
+              type="button"
+              class="aidlyst-catalog-tools__chip"
+              data-aidlyst-filter="type"
+              data-aidlyst-filter-value="{{ product_type | handleize }}"
+            >
+              {{ product_type }}
+            </button>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- else -%}
+        {%- assign rendered_types = '' -%}
+        {%- for product in products limit: 12 -%}
+          {%- assign product_type = product.type | default: product.collections.first.title -%}
+          {%- assign product_type_handle = product_type | handleize -%}
+          {%- if product_type != blank -%}
+            {%- if rendered_types contains product_type_handle -%}
+              {%- continue -%}
+            {%- endif -%}
+            {%- assign rendered_types = rendered_types | append: product_type_handle | append: ',' -%}
+            <button
+              type="button"
+              class="aidlyst-catalog-tools__chip"
+              data-aidlyst-filter="type"
+              data-aidlyst-filter-value="{{ product_type_handle }}"
+            >
+              {{ product_type }}
+            </button>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+
+    <div class="aidlyst-catalog-tools__group" aria-label="Purchase path filters">
+      <span class="aidlyst-catalog-tools__label">Purchase path</span>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="sale" data-aidlyst-filter-value="direct">Shop Direct</button>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="sale" data-aidlyst-filter-value="affiliate">Partner Product</button>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="sale" data-aidlyst-filter-value="provider_required">Provider Guidance</button>
+    </div>
+
+    <div class="aidlyst-catalog-tools__group" aria-label="Supplier filters">
+      <span class="aidlyst-catalog-tools__label">Supplier</span>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="supplier" data-aidlyst-filter-value="amazon">Amazon</button>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="supplier" data-aidlyst-filter-value="walmart">Walmart</button>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="supplier" data-aidlyst-filter-value="cvs">CVS</button>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="supplier" data-aidlyst-filter-value="walgreens">Walgreens</button>
+      <button type="button" class="aidlyst-catalog-tools__chip" data-aidlyst-filter="supplier" data-aidlyst-filter-value="medline">Medline</button>
+    </div>
+  </div>
+
+  <p class="aidlyst-catalog-tools__status" data-aidlyst-catalog-status aria-live="polite"></p>
+</section>

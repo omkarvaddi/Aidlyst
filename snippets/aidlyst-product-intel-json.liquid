@@ -1,0 +1,86 @@
+{%- liquid
+  assign product_resource = product | default: closest.product
+-%}
+
+{%- if product_resource != blank -%}
+{%- liquid
+
+  capture product_sale_type_render
+    render 'product-sale-type', product_resource: product_resource
+  endcapture
+  assign product_sale_type = product_sale_type_render | strip | default: 'affiliate'
+
+  assign supplier_keys = 'supplier_url,amazon_url,walmart_url,target_url,cvs_url,walgreens_url,best_buy_url,medline_url,ebay_url,costco_url,home_depot_url,wayfair_url' | split: ','
+  assign supplier_count = 0
+-%}
+
+<script type="application/json" data-aidlyst-product-intel data-product-handle="{{ product_resource.handle | escape }}">
+  {
+    "id": {{ product_resource.id | json }},
+    "handle": {{ product_resource.handle | json }},
+    "title": {{ product_resource.title | json }},
+    "url": {{ product_resource.url | json }},
+    "type": {{ product_resource.type | json }},
+    "sale_type": {{ product_sale_type | json }},
+    "available": {{ product_resource.available | json }},
+    "price": {{ product_resource.price | json }},
+    "compare_at_price": {{ product_resource.compare_at_price | json }},
+    "suppliers": [
+      {%- for supplier_key in supplier_keys -%}
+        {%- liquid
+          assign supplier_key = supplier_key | strip
+          assign supplier_metafield = product_resource.metafields.custom[supplier_key]
+          assign supplier_url = supplier_metafield.value | default: supplier_metafield
+
+          if supplier_url == blank
+            assign supplier_metafield = product_resource.metafields.deals[supplier_key]
+            assign supplier_url = supplier_metafield.value | default: supplier_metafield
+          endif
+
+          assign supplier_name = supplier_key | remove: '_url' | replace: '_', ' ' | capitalize
+          case supplier_key
+            when 'supplier_url'
+              assign supplier_name = 'Supplier'
+            when 'amazon_url'
+              assign supplier_name = 'Amazon'
+            when 'walmart_url'
+              assign supplier_name = 'Walmart'
+            when 'target_url'
+              assign supplier_name = 'Target'
+            when 'cvs_url'
+              assign supplier_name = 'CVS'
+            when 'walgreens_url'
+              assign supplier_name = 'Walgreens'
+            when 'best_buy_url'
+              assign supplier_name = 'Best Buy'
+            when 'medline_url'
+              assign supplier_name = 'Medline'
+            when 'ebay_url'
+              assign supplier_name = 'eBay'
+            when 'costco_url'
+              assign supplier_name = 'Costco'
+            when 'home_depot_url'
+              assign supplier_name = 'Home Depot'
+            when 'wayfair_url'
+              assign supplier_name = 'Wayfair'
+          endcase
+        -%}
+        {%- if supplier_url != blank -%}
+          {%- if supplier_count > 0 -%},{%- endif -%}
+          {
+            "key": {{ supplier_key | json }},
+            "name": {{ supplier_name | json }},
+            "url": {{ supplier_url | json }}
+          }
+          {%- assign supplier_count = supplier_count | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    ],
+    "supplier_count": {{ supplier_count | json }},
+    "price_history": {{ product_resource.metafields.custom.price_history_json.value | default: product_resource.metafields.custom.price_history_json | json }},
+    "supplier_price_snapshot": {{ product_resource.metafields.custom.supplier_price_snapshot.value | default: product_resource.metafields.custom.supplier_price_snapshot | json }},
+    "review_intelligence": {{ product_resource.metafields.custom.review_intelligence_json.value | default: product_resource.metafields.custom.review_intelligence_json | json }},
+    "social_signal": {{ product_resource.metafields.custom.social_signal_json.value | default: product_resource.metafields.custom.social_signal_json | json }}
+  }
+</script>
+{%- endif -%}

@@ -1,0 +1,18 @@
+{%- doc -%}
+  Renders Aidlyst's reusable medical disclaimer.
+
+  @param {string} [context] - Rendering context
+  @param {boolean} [compact] - Use compact spacing
+{%- enddoc -%}
+
+<div
+  class="aidlyst-medical-disclaimer{% if compact %} aidlyst-medical-disclaimer--compact{% endif %}"
+  data-aidlyst-disclaimer-context="{{ context | default: 'general' }}"
+>
+  <p>
+    <strong>Medical Disclaimer:</strong>
+    Information on this site is for general informational purposes only and is not a substitute for professional
+    medical advice, diagnosis, or treatment. Always speak with a licensed healthcare professional before using any
+    medical device or product that may affect your health.
+  </p>
+</div>

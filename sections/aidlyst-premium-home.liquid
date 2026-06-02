@@ -1,0 +1,848 @@
+{%- liquid
+  assign featured_collection = section.settings.featured_collection
+  assign hero_product = featured_collection.products.first
+  assign primary_cta_url = section.settings.primary_cta_url | default: featured_collection.url | default: routes.all_products_collection_url
+  assign secondary_cta_url = section.settings.secondary_cta_url | default: '#aidlyst-comparison-model'
+  assign category_one = section.settings.category_collection_1
+  assign category_two = section.settings.category_collection_2
+  assign category_three = section.settings.category_collection_3
+  assign category_four = section.settings.category_collection_4
+  assign amazon_tracking_id = 'aidlyst-20'
+-%}
+
+<section class="aidlyst-premium-home" aria-labelledby="AidlystPremiumHomeTitle">
+  <div class="aidlyst-premium-home__shell">
+    <div class="aidlyst-premium-home__hero">
+      <div class="aidlyst-premium-home__copy">
+        <h1 id="AidlystPremiumHomeTitle">{{ section.settings.heading }}</h1>
+        <p class="aidlyst-premium-home__lede">{{ section.settings.subheading }}</p>
+
+        <div class="aidlyst-premium-home__actions">
+          <a class="button aidlyst-premium-home__primary" href="{{ primary_cta_url }}">
+            {{ section.settings.primary_cta_label }}
+          </a>
+          <a class="button-secondary aidlyst-premium-home__secondary" href="{{ secondary_cta_url }}">
+            {{ section.settings.secondary_cta_label }}
+          </a>
+        </div>
+
+        <div class="aidlyst-premium-home__proof" aria-label="Aidlyst trust signals">
+          <span>Independent product comparison</span>
+          <span>Supplier-site checkout</span>
+          <span>Built for health shopping decisions</span>
+        </div>
+      </div>
+
+      <div class="aidlyst-premium-home__preview" aria-label="Supplier comparison preview">
+        <div class="aidlyst-preview-card">
+          <div class="aidlyst-preview-card__topline">
+            <span>Live supplier view</span>
+            <strong>{%- if hero_product != blank -%}{{ hero_product.price | money }}{%- else -%}Compare{%- endif -%}</strong>
+          </div>
+
+          <div class="aidlyst-preview-card__product">
+            <div class="aidlyst-preview-card__media">
+              {%- if hero_product.featured_image -%}
+                {{
+                  hero_product.featured_image
+                  | image_url: width: 760
+                  | image_tag:
+                    loading: 'eager',
+                    fetchpriority: 'high',
+                    class: 'aidlyst-preview-card__image',
+                    alt: hero_product.title
+                }}
+              {%- elsif featured_collection.image -%}
+                {{
+                  featured_collection.image
+                  | image_url: width: 760
+                  | image_tag:
+                    loading: 'eager',
+                    fetchpriority: 'high',
+                    class: 'aidlyst-preview-card__image',
+                    alt: featured_collection.title
+                }}
+              {%- else -%}
+                <div class="aidlyst-preview-card__placeholder" aria-hidden="true">
+                  <span>Product preview</span>
+                </div>
+              {%- endif -%}
+            </div>
+            <div>
+              <p class="aidlyst-preview-card__label">Featured comparison</p>
+              <h2>
+                {%- if hero_product != blank -%}
+                  {{ hero_product.title }}
+                {%- else -%}
+                  Health essentials deal match
+                {%- endif -%}
+              </h2>
+              <p>Review supplier destinations before leaving Aidlyst.</p>
+            </div>
+          </div>
+
+          <div class="aidlyst-preview-card__suppliers" role="list">
+            {%- liquid
+              assign supplier_keys = 'amazon_url,walmart_url,walgreens_url,cvs_url' | split: ','
+            -%}
+            {%- for supplier_key in supplier_keys -%}
+              {%- liquid
+                assign supplier_name = supplier_key | replace: '_url', '' | replace: '_', ' ' | capitalize
+                case supplier_key
+                  when 'amazon_url'
+                    assign supplier_name = 'Amazon'
+                  when 'walmart_url'
+                    assign supplier_name = 'Walmart'
+                  when 'walgreens_url'
+                    assign supplier_name = 'Walgreens'
+                  when 'cvs_url'
+                    assign supplier_name = 'CVS'
+                endcase
+
+                assign supplier_metafield = hero_product.metafields.custom[supplier_key]
+                assign supplier_href = supplier_metafield.value | default: supplier_metafield
+                if supplier_href == blank
+                  assign supplier_metafield = hero_product.metafields.deals[supplier_key]
+                  assign supplier_href = supplier_metafield.value | default: supplier_metafield
+                endif
+                assign supplier_status = 'Check site'
+                if supplier_href != blank
+                  assign supplier_status = 'Available'
+                endif
+                if supplier_href == blank
+                  assign supplier_href = hero_product.url | default: primary_cta_url
+                endif
+                if supplier_key == 'amazon_url' and supplier_href contains 'amazon.' and amazon_tracking_id != blank
+                  unless supplier_href contains 'tag='
+                    if supplier_href contains '?'
+                      assign supplier_href = supplier_href | append: '&tag=' | append: amazon_tracking_id
+                    else
+                      assign supplier_href = supplier_href | append: '?tag=' | append: amazon_tracking_id
+                    endif
+                  endunless
+                endif
+              -%}
+              <a
+                class="aidlyst-preview-card__supplier"
+                href="{{ supplier_href }}"
+                {% if supplier_href contains '://' %}target="_blank" rel="noopener noreferrer sponsored"{% endif %}
+                data-aidlyst-link-type="{% if supplier_href contains '://' %}supplier{% else %}internal{% endif %}"
+                data-aidlyst-supplier="{{ supplier_name }}"
+                data-aidlyst-product-id="{{ hero_product.id }}"
+                data-aidlyst-product-title="{{ hero_product.title | escape }}"
+                role="listitem"
+              >
+                <span class="aidlyst-preview-card__supplier-name">{{ supplier_name }}</span>
+                <span class="aidlyst-preview-card__status">{{ supplier_status }}</span>
+              </a>
+            {%- endfor -%}
+          </div>
+          <p class="aidlyst-preview-card__disclosure">
+            Paid links. As an Amazon Associate, Aidlyst earns from qualifying purchases.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="aidlyst-premium-home__trust" role="list" aria-label="Aidlyst operating principles">
+      <div role="listitem">
+        <strong>Compare first</strong>
+        <span>Supplier choices are surfaced before purchase intent.</span>
+      </div>
+      <div role="listitem">
+        <strong>Leave with context</strong>
+        <span>Outbound links carry product and supplier tracking data.</span>
+      </div>
+      <div role="listitem">
+        <strong>Health-safe framing</strong>
+        <span>Aidlyst supports shopping research, not medical advice.</span>
+      </div>
+    </div>
+
+    <div class="aidlyst-premium-home__flows" aria-labelledby="AidlystProductFlowsTitle">
+      <div class="aidlyst-premium-home__flows-heading">
+        <h2 id="AidlystProductFlowsTitle">Shop Simple Products. Explore Advanced Devices.</h2>
+        <p>
+          Aidlyst helps you find trusted medical products in one place. Basic essentials can be purchased directly,
+          while advanced devices that may require medical guidance connect you with the appropriate partner,
+          manufacturer, or provider.
+        </p>
+      </div>
+
+      <div class="aidlyst-premium-home__flow-cards" role="list">
+        <a class="aidlyst-flow-card aidlyst-flow-card--direct" href="{{ category_one.url | default: primary_cta_url }}" role="listitem">
+          <span class="aidlyst-flow-card__badge">Shop Direct</span>
+          <h3>Shop Essentials</h3>
+          <p>Find basic medical products, wellness supplies, and everyday care essentials available for direct purchase.</p>
+          <span class="aidlyst-flow-card__cta">Shop Essentials</span>
+        </a>
+
+        <a class="aidlyst-flow-card aidlyst-flow-card--partner" href="{{ category_two.url | default: primary_cta_url }}" role="listitem">
+          <span class="aidlyst-flow-card__badge">Partner Product</span>
+          <h3>Partner Devices</h3>
+          <p>Explore advanced medical products from trusted partners and manufacturers.</p>
+          <span class="aidlyst-flow-card__cta">View Partner Devices</span>
+        </a>
+
+        <a class="aidlyst-flow-card aidlyst-flow-card--provider" href="/pages/contact" role="listitem">
+          <span class="aidlyst-flow-card__badge">Provider Guidance</span>
+          <h3>Provider Guidance</h3>
+          <p>Some products may require medical advice, a prescription, or professional fitting before use.</p>
+          <span class="aidlyst-flow-card__cta">Learn More</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="aidlyst-premium-home__categories" aria-label="Featured shopping categories">
+      {%- if category_one != blank -%}
+        <a class="aidlyst-category-card" href="{{ category_one.url }}">
+          {%- if category_one.image -%}
+            {{ category_one.image | image_url: width: 520 | image_tag: loading: 'lazy', class: 'aidlyst-category-card__image', alt: category_one.title }}
+          {%- endif -%}
+          <span>{{ category_one.title }}</span>
+        </a>
+      {%- endif -%}
+      {%- if category_two != blank -%}
+        <a class="aidlyst-category-card" href="{{ category_two.url }}">
+          {%- if category_two.image -%}
+            {{ category_two.image | image_url: width: 520 | image_tag: loading: 'lazy', class: 'aidlyst-category-card__image', alt: category_two.title }}
+          {%- endif -%}
+          <span>{{ category_two.title }}</span>
+        </a>
+      {%- endif -%}
+      {%- if category_three != blank -%}
+        <a class="aidlyst-category-card" href="{{ category_three.url }}">
+          {%- if category_three.image -%}
+            {{ category_three.image | image_url: width: 520 | image_tag: loading: 'lazy', class: 'aidlyst-category-card__image', alt: category_three.title }}
+          {%- endif -%}
+          <span>{{ category_three.title }}</span>
+        </a>
+      {%- endif -%}
+      {%- if category_four != blank -%}
+        <a class="aidlyst-category-card" href="{{ category_four.url }}">
+          {%- if category_four.image -%}
+            {{ category_four.image | image_url: width: 520 | image_tag: loading: 'lazy', class: 'aidlyst-category-card__image', alt: category_four.title }}
+          {%- endif -%}
+          <span>{{ category_four.title }}</span>
+        </a>
+      {%- endif -%}
+    </div>
+
+    <div class="aidlyst-premium-home__model" id="aidlyst-comparison-model">
+      <div>
+        <h2>{{ section.settings.model_heading }}</h2>
+      </div>
+      <div class="aidlyst-premium-home__model-steps">
+        <p><strong>1. Find the product.</strong> Browse curated health essentials and home medical device categories.</p>
+        <p><strong>2. Compare suppliers.</strong> Aidlyst shows configured supplier destinations from product data.</p>
+        <p><strong>3. Continue on supplier sites.</strong> Customers leave with context, and link clicks are tracked.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .aidlyst-premium-home {
+    --aidlyst-home-ink: #101828;
+    --aidlyst-home-muted: #526173;
+    --aidlyst-home-line: rgba(16, 24, 40, 0.11);
+    --aidlyst-home-blue: #2563eb;
+    --aidlyst-home-teal: #0f9f8f;
+    --aidlyst-home-surface: #f6f9fc;
+
+    position: relative;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(90deg, rgba(16, 24, 40, 0.028) 0 1px, transparent 1px 96px),
+      linear-gradient(180deg, #ffffff 0%, #f7fbff 56%, #ffffff 100%);
+    color: var(--aidlyst-home-ink);
+  }
+
+  .aidlyst-premium-home__shell {
+    width: min(1180px, calc(100% - 40px));
+    margin-inline: auto;
+    padding-block: 72px 54px;
+  }
+
+  .aidlyst-premium-home__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
+    gap: 54px;
+    align-items: center;
+  }
+
+  .aidlyst-premium-home__copy {
+    display: grid;
+    gap: 24px;
+    max-width: 660px;
+  }
+
+  .aidlyst-premium-home h1 {
+    margin: 0;
+    max-width: 10.5em;
+    color: var(--aidlyst-home-ink);
+    font-family: var(--font-heading--family);
+    font-size: 4.25rem;
+    font-weight: 780;
+    line-height: 0.96;
+    letter-spacing: 0;
+  }
+
+  .aidlyst-premium-home__lede {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--aidlyst-home-muted);
+    font-size: 1.12rem;
+    line-height: 1.65;
+  }
+
+  .aidlyst-premium-home__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .aidlyst-premium-home__primary,
+  .aidlyst-premium-home__secondary {
+    min-height: 52px;
+    padding-inline: 22px;
+  }
+
+  .aidlyst-premium-home__proof {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    color: var(--aidlyst-home-muted);
+    font-size: 0.88rem;
+    font-weight: 650;
+  }
+
+  .aidlyst-premium-home__proof span {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .aidlyst-premium-home__proof span::before {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--aidlyst-home-teal);
+    content: '';
+  }
+
+  .aidlyst-premium-home__preview {
+    min-width: 0;
+  }
+
+  .aidlyst-preview-card {
+    display: grid;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid var(--aidlyst-home-line);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 28px 72px rgba(16, 24, 40, 0.14);
+  }
+
+  .aidlyst-preview-card__topline,
+  .aidlyst-preview-card__supplier {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .aidlyst-preview-card__topline {
+    color: var(--aidlyst-home-muted);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .aidlyst-preview-card__topline strong {
+    color: var(--aidlyst-home-ink);
+    font-size: 1rem;
+  }
+
+  .aidlyst-preview-card__product {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    min-height: 220px;
+    padding: 16px;
+    border: 1px solid rgba(16, 24, 40, 0.08);
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 159, 143, 0.06)),
+      #ffffff;
+  }
+
+  .aidlyst-preview-card__media {
+    display: grid;
+    min-height: 188px;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--aidlyst-home-surface);
+  }
+
+  .aidlyst-preview-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .aidlyst-preview-card__placeholder {
+    display: grid;
+    width: 100%;
+    min-height: 188px;
+    place-items: center;
+    color: var(--aidlyst-home-muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .aidlyst-preview-card__label {
+    margin: 0 0 8px;
+    color: var(--aidlyst-home-blue);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .aidlyst-preview-card h2 {
+    margin: 0 0 8px;
+    color: var(--aidlyst-home-ink);
+    font-family: var(--font-heading--family);
+    font-size: 1.45rem;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+
+  .aidlyst-preview-card p {
+    margin: 0;
+    color: var(--aidlyst-home-muted);
+    line-height: 1.5;
+  }
+
+  .aidlyst-preview-card__suppliers {
+    display: grid;
+    gap: 10px;
+  }
+
+  .aidlyst-preview-card__supplier {
+    min-height: 54px;
+    padding: 12px 14px;
+    border: 1px solid var(--aidlyst-home-line);
+    border-radius: 14px;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .aidlyst-preview-card__supplier:hover {
+    border-color: rgba(37, 99, 235, 0.38);
+    box-shadow: 0 12px 26px rgba(16, 24, 40, 0.09);
+    transform: translateY(-1px);
+  }
+
+  .aidlyst-preview-card__supplier-name {
+    font-size: 0.95rem;
+    font-weight: 760;
+  }
+
+  .aidlyst-preview-card__status {
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: rgba(15, 159, 143, 0.1);
+    color: #08786d;
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .aidlyst-preview-card__disclosure {
+    margin: 0;
+    color: var(--aidlyst-home-muted);
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .aidlyst-premium-home__trust {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    margin-block-start: 52px;
+    overflow: hidden;
+    border: 1px solid var(--aidlyst-home-line);
+    border-radius: 20px;
+    background: var(--aidlyst-home-line);
+  }
+
+  .aidlyst-premium-home__trust > div {
+    display: grid;
+    gap: 8px;
+    min-height: 132px;
+    padding: 22px;
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .aidlyst-premium-home__trust strong {
+    color: var(--aidlyst-home-ink);
+    font-size: 1rem;
+  }
+
+  .aidlyst-premium-home__trust span {
+    color: var(--aidlyst-home-muted);
+    line-height: 1.45;
+  }
+
+  .aidlyst-premium-home__categories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-block-start: 22px;
+  }
+
+  .aidlyst-category-card {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 12px;
+    min-height: 216px;
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid var(--aidlyst-home-line);
+    border-radius: 18px;
+    background: #ffffff;
+    color: var(--aidlyst-home-ink);
+    text-decoration: none;
+    padding: 14px;
+    box-shadow: 0 12px 28px rgba(16, 24, 40, 0.06);
+  }
+
+  .aidlyst-category-card::after {
+    content: none;
+  }
+
+  .aidlyst-category-card__image {
+    position: static;
+    width: 100%;
+    height: 156px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef5f7 100%);
+  }
+
+  .aidlyst-category-card span {
+    position: relative;
+    z-index: 1;
+    padding: 0;
+    color: var(--aidlyst-home-ink);
+    font-size: 1rem;
+    font-weight: 790;
+    line-height: 1.2;
+  }
+
+  .aidlyst-premium-home__flows {
+    display: grid;
+    gap: 22px;
+    margin-block-start: 44px;
+    padding: 32px;
+    border: 1px solid var(--aidlyst-home-line);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 48px rgba(16, 24, 40, 0.08);
+  }
+
+  .aidlyst-premium-home__flows-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 26px;
+    align-items: start;
+  }
+
+  .aidlyst-premium-home__flows h2 {
+    margin: 0;
+    max-width: 620px;
+    color: var(--aidlyst-home-ink);
+    font-family: var(--font-heading--family);
+    font-size: 2.15rem;
+    line-height: 1.08;
+    letter-spacing: 0;
+  }
+
+  .aidlyst-premium-home__flows-heading p {
+    margin: 0;
+    max-width: 680px;
+    color: var(--aidlyst-home-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .aidlyst-premium-home__flow-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .aidlyst-flow-card {
+    display: flex;
+    min-height: 248px;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px;
+    border: 1px solid var(--aidlyst-home-line);
+    border-radius: 18px;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .aidlyst-flow-card:hover {
+    border-color: rgba(37, 99, 235, 0.34);
+    box-shadow: 0 16px 32px rgba(16, 24, 40, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .aidlyst-flow-card__badge {
+    width: fit-content;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(15, 159, 143, 0.1);
+    color: #08786d;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .aidlyst-flow-card--partner .aidlyst-flow-card__badge {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1f57c8;
+  }
+
+  .aidlyst-flow-card--provider .aidlyst-flow-card__badge {
+    background: rgba(180, 83, 9, 0.12);
+    color: #92400e;
+  }
+
+  .aidlyst-flow-card h3 {
+    margin: 0;
+    color: var(--aidlyst-home-ink);
+    font-family: var(--font-heading--family);
+    font-size: 1.3rem;
+    line-height: 1.18;
+    letter-spacing: 0;
+  }
+
+  .aidlyst-flow-card p {
+    margin: 0;
+    color: var(--aidlyst-home-muted);
+    line-height: 1.55;
+  }
+
+  .aidlyst-flow-card__cta {
+    display: inline-flex;
+    margin-block-start: auto;
+    color: var(--aidlyst-home-ink);
+    font-weight: 800;
+  }
+
+  .aidlyst-premium-home__model {
+    display: grid;
+    grid-template-columns: 0.78fr 1.22fr;
+    gap: 38px;
+    margin-block-start: 54px;
+    padding-block-start: 42px;
+    border-top: 1px solid var(--aidlyst-home-line);
+  }
+
+  .aidlyst-premium-home__model h2 {
+    margin: 0;
+    color: var(--aidlyst-home-ink);
+    font-family: var(--font-heading--family);
+    font-size: 2rem;
+    line-height: 1.1;
+    letter-spacing: 0;
+  }
+
+  .aidlyst-premium-home__model-steps {
+    display: grid;
+    gap: 16px;
+  }
+
+  .aidlyst-premium-home__model-steps p {
+    margin: 0;
+    color: var(--aidlyst-home-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .aidlyst-premium-home__model-steps strong {
+    color: var(--aidlyst-home-ink);
+  }
+
+  @media screen and (max-width: 989px) {
+    .aidlyst-premium-home__shell {
+      padding-block-start: 54px;
+    }
+
+    .aidlyst-premium-home__hero,
+    .aidlyst-premium-home__model,
+    .aidlyst-premium-home__flows-heading,
+    .aidlyst-premium-home__flow-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .aidlyst-premium-home h1 {
+      max-width: 11em;
+      font-size: 3.25rem;
+    }
+
+    .aidlyst-premium-home__trust,
+    .aidlyst-premium-home__flow-cards,
+    .aidlyst-premium-home__categories {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .aidlyst-premium-home__shell {
+      width: min(100% - 28px, 1180px);
+      padding-block: 42px;
+    }
+
+    .aidlyst-premium-home h1 {
+      font-size: 2.55rem;
+      line-height: 1;
+    }
+
+    .aidlyst-premium-home__lede {
+      font-size: 1rem;
+    }
+
+    .aidlyst-premium-home__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .aidlyst-premium-home__actions > a {
+      width: 100%;
+    }
+
+    .aidlyst-preview-card {
+      padding: 12px;
+      border-radius: 18px;
+    }
+
+    .aidlyst-preview-card__product {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .aidlyst-preview-card__media,
+    .aidlyst-preview-card__placeholder {
+      min-height: 210px;
+    }
+
+    .aidlyst-premium-home__trust,
+    .aidlyst-premium-home__flow-cards,
+    .aidlyst-premium-home__categories {
+      grid-template-columns: 1fr;
+    }
+
+    .aidlyst-premium-home__flows {
+      padding: 18px;
+      border-radius: 18px;
+    }
+
+    .aidlyst-category-card {
+      min-height: 188px;
+    }
+
+    .aidlyst-category-card__image {
+      height: 128px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Aidlyst premium home",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Compare trusted health essentials in one place"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Aidlyst helps shoppers evaluate home-health equipment, mobility aids, recovery products, and first-aid essentials across supplier sites before they buy."
+    },
+    {
+      "type": "text",
+      "id": "primary_cta_label",
+      "label": "Primary button label",
+      "default": "Browse deals"
+    },
+    {
+      "type": "url",
+      "id": "primary_cta_url",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "secondary_cta_label",
+      "label": "Secondary button label",
+      "default": "How comparison works"
+    },
+    {
+      "type": "url",
+      "id": "secondary_cta_url",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "collection",
+      "id": "featured_collection",
+      "label": "Featured comparison collection"
+    },
+    {
+      "type": "collection",
+      "id": "category_collection_1",
+      "label": "Category collection 1"
+    },
+    {
+      "type": "collection",
+      "id": "category_collection_2",
+      "label": "Category collection 2"
+    },
+    {
+      "type": "collection",
+      "id": "category_collection_3",
+      "label": "Category collection 3"
+    },
+    {
+      "type": "collection",
+      "id": "category_collection_4",
+      "label": "Category collection 4"
+    },
+    {
+      "type": "text",
+      "id": "model_heading",
+      "label": "Comparison model heading",
+      "default": "A comparison flow that feels premium because it is transparent."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Aidlyst premium home"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,518 @@
+{%- liquid
+  assign block_settings = block.settings
+  assign selected_product = closest.product
+  assign show_title = block_settings.show_title
+  assign title_text = block_settings.title_text | default: 'Compare supplier options'
+  assign helper_text = block_settings.helper_text | default: 'View current pricing, shipping, and availability on supplier sites.'
+  assign layout_style = block_settings.layout_style | default: 'grid'
+  assign button_alignment = block_settings.button_alignment | default: 'flex-start'
+  assign columns_desktop = block_settings.columns_desktop | default: 3
+  assign gap_size = block_settings.gap_size | default: 12
+  assign metafield_namespace = block_settings.metafield_namespace | default: 'custom'
+  assign fallback_namespaces = block_settings.fallback_namespaces | default: 'deals'
+  assign show_empty_state = block_settings.show_empty_state
+  assign default_supplier_metafields = 'supplier_url,amazon_url,walmart_url,target_url,cvs_url,walgreens_url,best_buy_url,medline_url,ebay_url,costco_url,home_depot_url,wayfair_url'
+  assign supplier_metafields_string = block_settings.supplier_metafields | default: default_supplier_metafields
+  assign supplier_metafields = supplier_metafields_string | split: ','
+  assign fallback_namespace_list = fallback_namespaces | split: ','
+  assign amazon_tracking_id = 'aidlyst-20'
+  assign supplier_count = 0
+  assign should_render = false
+-%}
+
+{%- capture supplier_items -%}
+  {%- for supplier_source in supplier_metafields -%}
+    {%- liquid
+      assign supplier_source = supplier_source | strip
+      assign source_parts = supplier_source | split: '.'
+      assign source_has_namespace = false
+      assign supplier_namespace = metafield_namespace
+      assign metafield_key = supplier_source
+
+      if supplier_source == blank
+        continue
+      endif
+
+      if source_parts.size > 1
+        assign source_has_namespace = true
+        assign supplier_namespace = source_parts.first | strip
+        assign metafield_key = source_parts.last | strip
+      endif
+
+      assign supplier_metafield = selected_product.metafields[supplier_namespace][metafield_key]
+      assign supplier_url = supplier_metafield.value | default: supplier_metafield
+
+      if supplier_url == blank and source_has_namespace == false
+        for fallback_namespace in fallback_namespace_list
+          assign fallback_namespace = fallback_namespace | strip
+          if fallback_namespace == blank or fallback_namespace == supplier_namespace
+            continue
+          endif
+
+          assign fallback_metafield = selected_product.metafields[fallback_namespace][metafield_key]
+          assign fallback_url = fallback_metafield.value | default: fallback_metafield
+          if fallback_url != blank
+            assign supplier_namespace = fallback_namespace
+            assign supplier_metafield = fallback_metafield
+            assign supplier_url = fallback_url
+            break
+          endif
+        endfor
+      endif
+
+      assign supplier_url = supplier_url | strip
+      assign normalized_url = supplier_url
+      if supplier_url != blank
+        unless supplier_url contains '://'
+          assign normalized_url = 'https://' | append: supplier_url
+        endunless
+      endif
+
+      if metafield_key == 'amazon_url' and normalized_url contains 'amazon.' and amazon_tracking_id != blank
+        unless normalized_url contains 'tag='
+          if normalized_url contains '?'
+            assign normalized_url = normalized_url | append: '&tag=' | append: amazon_tracking_id
+          else
+            assign normalized_url = normalized_url | append: '?tag=' | append: amazon_tracking_id
+          endif
+        endunless
+      endif
+
+      assign supplier_name = metafield_key | replace: '_url', '' | replace: '_', ' '
+      case metafield_key
+        when 'supplier_url'
+          assign supplier_name = 'Supplier'
+        when 'amazon_url'
+          assign supplier_name = 'Amazon'
+        when 'walmart_url'
+          assign supplier_name = 'Walmart'
+        when 'target_url'
+          assign supplier_name = 'Target'
+        when 'cvs_url'
+          assign supplier_name = 'CVS'
+        when 'walgreens_url'
+          assign supplier_name = 'Walgreens'
+        when 'best_buy_url'
+          assign supplier_name = 'Best Buy'
+        when 'medline_url'
+          assign supplier_name = 'Medline'
+        when 'ebay_url'
+          assign supplier_name = 'eBay'
+        when 'costco_url'
+          assign supplier_name = 'Costco'
+        when 'home_depot_url'
+          assign supplier_name = 'Home Depot'
+        when 'wayfair_url'
+          assign supplier_name = 'Wayfair'
+        else
+          assign supplier_name = supplier_name | capitalize
+      endcase
+    -%}
+
+    {%- if supplier_url != blank -%}
+      {%- assign supplier_count = supplier_count | plus: 1 -%}
+      <li class="supplier-comparison__item" data-supplier="{{ metafield_key | escape }}">
+        <a
+          href="{{ normalized_url | escape }}"
+          class="supplier-comparison__link"
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          aria-label="View {{ selected_product.title | escape }} at {{ supplier_name | escape }}"
+          data-aidlyst-link-type="supplier"
+          data-aidlyst-supplier="{{ supplier_name | escape }}"
+          data-aidlyst-supplier-key="{{ metafield_key | escape }}"
+          data-aidlyst-supplier-namespace="{{ supplier_namespace | escape }}"
+          data-aidlyst-product-id="{{ selected_product.id }}"
+          data-aidlyst-product-title="{{ selected_product.title | escape }}"
+          data-supplier-name="{{ supplier_name | escape }}"
+          data-supplier-key="{{ metafield_key | escape }}"
+          data-testid="supplier-link-{{ metafield_key | handleize }}"
+        >
+          <span class="supplier-comparison__icon svg-wrapper" aria-hidden="true">
+            {{- 'icon-external.svg' | inline_asset_content -}}
+          </span>
+          <span class="supplier-comparison__copy">
+            <span class="supplier-comparison__name">{{ supplier_name }}</span>
+            <span class="supplier-comparison__meta">View site</span>
+          </span>
+        </a>
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- liquid
+  if selected_product != blank and supplier_count > 0
+    assign should_render = true
+  elsif request.design_mode and show_empty_state
+    assign should_render = true
+  endif
+-%}
+
+{%- if should_render -%}
+  <script
+    src="{{ 'supplier-comparison.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+
+  <supplier-comparison-handler
+    class="supplier-comparison-block"
+    data-product-id="{{ selected_product.id }}"
+    data-product-title="{{ selected_product.title | escape }}"
+    data-layout="{{ layout_style }}"
+    data-columns="{{ columns_desktop }}"
+    data-metafields="{{ supplier_metafields_string | escape }}"
+    style="--supplier-gap: {{ gap_size }}px; --supplier-columns: {{ columns_desktop }}; --button-alignment: {{ button_alignment }}; --supplier-padding-start: {{ block_settings.padding_block_start | default: 20 }}px; --supplier-padding-end: {{ block_settings.padding_block_end | default: 20 }}px;"
+    data-testid="supplier-comparison-block"
+    {{ block.shopify_attributes }}
+  >
+    <div class="supplier-comparison__header">
+      {%- if show_title -%}
+        <h3 class="supplier-comparison__title">{{ title_text }}</h3>
+      {%- endif -%}
+      {%- if helper_text != blank -%}
+        <p class="supplier-comparison__helper">{{ helper_text }}</p>
+      {%- endif -%}
+      <p class="supplier-comparison__disclosure">
+        Paid links. As an Amazon Associate, Aidlyst earns from qualifying purchases.
+      </p>
+    </div>
+
+    {%- if supplier_count > 0 -%}
+      <ul class="supplier-comparison__container" data-layout="{{ layout_style }}" role="list">
+        {{ supplier_items }}
+      </ul>
+    {%- elsif show_empty_state -%}
+      <div class="supplier-comparison__empty" data-testid="supplier-empty-state">
+        <p class="supplier-comparison__empty-text">
+          Add supplier URLs in product metafields to show comparison links here.
+        </p>
+      </div>
+    {%- endif -%}
+  </supplier-comparison-handler>
+{%- endif -%}
+
+{%- stylesheet -%}
+  .supplier-comparison-block {
+    --supplier-card-radius: 14px;
+    --supplier-card-border: rgb(var(--color-border-rgb) / 0.72);
+    --supplier-card-background: color-mix(in srgb, var(--color-background) 92%, white);
+    --supplier-card-background-hover: color-mix(in srgb, var(--color-primary) 7%, var(--color-background));
+
+    display: block;
+    width: 100%;
+    padding-block-start: var(--supplier-padding-start, 20px);
+    padding-block-end: var(--supplier-padding-end, 20px);
+  }
+
+  .supplier-comparison__header {
+    display: grid;
+    gap: 6px;
+    margin-block-end: var(--supplier-gap, 12px);
+  }
+
+  .supplier-comparison__title {
+    margin: 0;
+    color: var(--color-foreground-heading);
+    font-size: clamp(1.05rem, 1vw + 0.8rem, 1.35rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .supplier-comparison__helper {
+    max-width: 38rem;
+    margin: 0;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .supplier-comparison__disclosure {
+    max-width: 38rem;
+    margin: 0;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .supplier-comparison__container {
+    display: grid;
+    grid-template-columns: repeat(var(--supplier-columns, 3), minmax(0, 1fr));
+    gap: var(--supplier-gap, 12px);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .supplier-comparison__container[data-layout='flex'] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: var(--button-alignment, flex-start);
+  }
+
+  .supplier-comparison__container[data-layout='flex'] .supplier-comparison__item {
+    flex: 1 1 11rem;
+    max-width: 16rem;
+  }
+
+  .supplier-comparison__container[data-layout='horizontal'] {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-block-end: 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .supplier-comparison__container[data-layout='horizontal'] .supplier-comparison__item {
+    flex: 0 0 13rem;
+    scroll-snap-align: start;
+  }
+
+  .supplier-comparison__item {
+    min-width: 0;
+  }
+
+  .supplier-comparison__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 74px;
+    height: 100%;
+    padding: 14px;
+    border: 1px solid var(--supplier-card-border);
+    border-radius: var(--supplier-card-radius);
+    background:
+      linear-gradient(135deg, rgb(var(--color-primary-rgb) / 0.06), transparent 46%),
+      var(--supplier-card-background);
+    color: var(--color-foreground);
+    text-decoration: none;
+    box-shadow: 0 10px 28px rgb(var(--color-shadow-rgb) / 0.06);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .supplier-comparison__link:hover {
+    border-color: rgb(var(--color-primary-rgb) / 0.46);
+    background-color: var(--supplier-card-background-hover);
+    box-shadow: 0 16px 36px rgb(var(--color-shadow-rgb) / 0.11);
+    transform: translateY(-2px);
+  }
+
+  .supplier-comparison__link:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+  }
+
+  .supplier-comparison__icon {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    border-radius: 50%;
+    background: rgb(var(--color-primary-rgb) / 0.1);
+    color: var(--color-primary);
+  }
+
+  .supplier-comparison__icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .supplier-comparison__copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .supplier-comparison__name {
+    color: var(--color-foreground-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .supplier-comparison__meta {
+    color: rgb(var(--color-foreground-rgb) / 0.62);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .supplier-comparison__empty {
+    padding: 18px;
+    border: 1px dashed rgb(var(--color-border-rgb) / 0.9);
+    border-radius: var(--supplier-card-radius);
+    background: rgb(var(--color-foreground-rgb) / 0.025);
+    text-align: center;
+  }
+
+  .supplier-comparison__empty-text {
+    margin: 0;
+    color: rgb(var(--color-foreground-rgb) / 0.64);
+    font-size: 0.875rem;
+  }
+
+  @media screen and (max-width: 989px) {
+    .supplier-comparison__container {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .supplier-comparison-block {
+      padding-block-start: var(--supplier-padding-start, 16px);
+      padding-block-end: var(--supplier-padding-end, 16px);
+    }
+
+    .supplier-comparison__container {
+      grid-template-columns: 1fr;
+    }
+
+    .supplier-comparison__link {
+      min-height: 68px;
+      padding: 12px;
+    }
+  }
+{%- endstylesheet -%}
+
+{%- schema -%}
+{
+  "name": "Supplier Comparison",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Displays all configured supplier URLs for the product and tracks each outbound click."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show title",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "title_text",
+      "label": "Title text",
+      "default": "Compare supplier options"
+    },
+    {
+      "type": "text",
+      "id": "helper_text",
+      "label": "Helper text",
+      "default": "View current pricing, shipping, and availability on supplier sites."
+    },
+    {
+      "type": "text",
+      "id": "metafield_namespace",
+      "label": "Primary metafield namespace",
+      "default": "custom"
+    },
+    {
+      "type": "text",
+      "id": "fallback_namespaces",
+      "label": "Fallback metafield namespaces",
+      "default": "deals",
+      "info": "Comma-separated namespaces checked when a supplier key is not found in the primary namespace."
+    },
+    {
+      "type": "text",
+      "id": "supplier_metafields",
+      "label": "Supplier metafield keys",
+      "default": "supplier_url,amazon_url,walmart_url,target_url,cvs_url,walgreens_url,best_buy_url,medline_url,ebay_url,costco_url,home_depot_url,wayfair_url",
+      "info": "Comma-separated keys. You can also use namespace.key, for example deals.amazon_url."
+    },
+    {
+      "type": "select",
+      "id": "layout_style",
+      "label": "Layout style",
+      "default": "grid",
+      "options": [
+        {
+          "value": "grid",
+          "label": "Grid"
+        },
+        {
+          "value": "flex",
+          "label": "Wrapped row"
+        },
+        {
+          "value": "horizontal",
+          "label": "Horizontal scroll"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "button_alignment",
+      "label": "Button alignment",
+      "default": "flex-start",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "flex-end",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "gap_size",
+      "label": "Gap between suppliers",
+      "min": 8,
+      "max": 28,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_empty_state",
+      "label": "Show empty state in editor",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "padding_block_start",
+      "label": "Padding top",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_block_end",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    }
+  ]
+}
+{%- endschema -%}

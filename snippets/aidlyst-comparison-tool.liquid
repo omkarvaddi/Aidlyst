@@ -1,0 +1,34 @@
+<aidlyst-comparison-tool class="aidlyst-comparison-tool" hidden>
+  <div class="aidlyst-comparison-tool__backdrop" data-aidlyst-compare-close></div>
+  <section class="aidlyst-comparison-tool__panel" role="dialog" aria-modal="true" aria-labelledby="AidlystCompareTitle">
+    <header class="aidlyst-comparison-tool__header">
+      <div>
+        <p class="aidlyst-comparison-tool__eyebrow">Product intelligence</p>
+        <h2 id="AidlystCompareTitle">Compare products</h2>
+      </div>
+      <button type="button" class="aidlyst-comparison-tool__close" data-aidlyst-compare-close aria-label="Close comparison tool">
+        &times;
+      </button>
+    </header>
+
+    <div class="aidlyst-comparison-tool__selectors">
+      <label>
+        <span>Product A</span>
+        <input type="search" placeholder="Search a product" data-aidlyst-compare-search="0" autocomplete="off">
+        <div class="aidlyst-comparison-tool__results" data-aidlyst-compare-results="0"></div>
+      </label>
+      <label>
+        <span>Product B</span>
+        <input type="search" placeholder="Search another product" data-aidlyst-compare-search="1" autocomplete="off">
+        <div class="aidlyst-comparison-tool__results" data-aidlyst-compare-results="1"></div>
+      </label>
+    </div>
+
+    <div class="aidlyst-comparison-tool__body" data-aidlyst-compare-body>
+      <div class="aidlyst-comparison-tool__empty">
+        <h3>Select two products to compare</h3>
+        <p>Use Shopify product data plus Aidlyst metafields for price history, supplier coverage, and cached review intelligence.</p>
+      </div>
+    </div>
+  </section>
+</aidlyst-comparison-tool>

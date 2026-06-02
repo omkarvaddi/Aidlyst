@@ -10,6 +10,10 @@
 {%- enddoc -%}
 
 {% assign block_settings = block.settings %}
+{% capture product_sale_type_render %}{% render 'product-sale-type', product_resource: product %}{% endcapture %}
+{% assign product_sale_type = product_sale_type_render | strip | default: 'affiliate' %}
+{% capture primary_supplier_url_render %}{% render 'product-primary-supplier-url', product_resource: product %}{% endcapture %}
+{% assign primary_supplier_url = primary_supplier_url_render | strip %}
 
 {% style %}
   {% if request.visual_preview_mode %}
@@ -22,7 +26,7 @@
 
 {% liquid
   assign has_quick_add = false
-  if settings.quick_add and product.available
+  if settings.quick_add and product.available and product_sale_type == 'direct'
     assign has_quick_add = true
   endif
 
@@ -52,12 +56,38 @@
   if product.id == empty or product == blank
     assign onboarding = true
   endif
+
+  assign product_flow_badge = 'Partner Product'
+  assign product_flow_cta = 'View Partner Product'
+  assign product_flow_note = 'Disclosure applies'
+
+  case product_sale_type
+    when 'direct'
+      assign product_flow_badge = 'Shop Direct'
+      assign product_flow_cta = 'Shop Now'
+      assign product_flow_note = 'Available for direct checkout'
+    when 'provider_required'
+      assign product_flow_badge = 'Provider Guidance Required'
+      assign product_flow_cta = 'Request More Information'
+      assign product_flow_note = 'Medical guidance may be required'
+  endcase
+
+  assign product_flow_href = product.url
+  assign product_flow_external = false
+  if product_sale_type != 'direct' and primary_supplier_url != blank
+    assign product_flow_href = primary_supplier_url
+    assign product_flow_external = true
+  endif
+
+  assign product_category = product.type | default: product.collections.first.title
+  assign product_short_description = product.metafields.custom.short_description.value | default: product.metafields.custom.short_description | default: product.description | strip_html | strip | truncate: 118
 %}
 
 <product-card
   class="product-card size-style"
   style="{% render 'size-style', settings: block_settings %}"
   data-product-id="{{ product.id }}"
+  data-aidlyst-sale-type="{{ product_sale_type }}"
   id="product-card-{{ block.id }}"
   {% if settings.transition_to_main_product %}
     data-product-transition="true"
@@ -107,6 +137,35 @@
     "
   >
     {{ children }}
+    {%- unless onboarding -%}
+      <div class="aidlyst-card-flow aidlyst-card-flow--{{ product_sale_type }}">
+        <div class="aidlyst-card-flow__meta">
+          {%- if product_category != blank -%}
+            <span class="aidlyst-card-flow__category">{{ product_category }}</span>
+          {%- endif -%}
+          <span class="aidlyst-card-flow__badge">{{ product_flow_badge }}</span>
+        </div>
+
+        {%- if product_short_description != blank -%}
+          <p class="aidlyst-card-flow__description">{{ product_short_description }}</p>
+        {%- endif -%}
+
+        <a
+          class="aidlyst-card-flow__cta"
+          href="{{ product_flow_href }}"
+          {% if product_flow_external %}target="_blank" rel="noopener noreferrer sponsored"{% endif %}
+          data-aidlyst-link-type="{% if product_flow_external %}supplier{% else %}product-card{% endif %}"
+          data-aidlyst-supplier="{% if product_flow_external %}Primary partner{% endif %}"
+          data-aidlyst-product-id="{{ product.id }}"
+          data-aidlyst-product-title="{{ product.title | escape }}"
+          data-aidlyst-sale-type="{{ product_sale_type }}"
+        >
+          {{ product_flow_cta }}
+        </a>
+
+        <span class="aidlyst-card-flow__note">{{ product_flow_note }}</span>
+      </div>
+    {%- endunless -%}
   </div>
 </product-card>
 

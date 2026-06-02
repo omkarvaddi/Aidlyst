@@ -36,6 +36,13 @@
         {% assign products = collection.products %}
       {% endif %}
 
+      {% render 'aidlyst-catalog-tools',
+        results: search,
+        products: products,
+        heading: 'Search results tools',
+        subheading: 'Refine visible results by type, purchase path, and supplier coverage.'
+      %}
+
       {% capture children %}
         {% for product in products %}
           <li
@@ -43,6 +50,7 @@
             class="product-grid__item product-grid__item--{{ forloop.index0 }}"
             data-page="{{ paginate.current_page }}"
             data-product-id="{{ product.id }}"
+            {% render 'aidlyst-product-card-data-attributes', product: product %}
             ref="cards[]"
           >
             {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}

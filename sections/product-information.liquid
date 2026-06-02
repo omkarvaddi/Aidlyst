@@ -4,6 +4,11 @@
   {{ closest.product | structured_data }}
 </script>
 
+{% render 'aidlyst-product-intel-json', product: closest.product %}
+
+{% capture product_sale_type_render %}{% render 'product-sale-type', product_resource: closest.product %}{% endcapture %}
+{% assign product_sale_type = product_sale_type_render | strip | default: 'affiliate' %}
+
 {% capture media_gallery %}
   {%- content_for 'block',
     type: '_product-media-gallery',
@@ -24,7 +29,7 @@
   {% content_for 'blocks' %}
 {% endcapture %}
 
-{% if section.settings.enable_sticky_add_to_cart %}
+{% if section.settings.enable_sticky_add_to_cart and product_sale_type == 'direct' %}
   {% liquid
     assign current_variant = product.selected_or_first_available_variant
     # Get the initial quantity based on quantity rules
@@ -171,6 +176,7 @@
   product_media_size: closest.product.media.size,
   section_id: section.id,
   settings: section.settings,
+  product_sale_type: product_sale_type,
   media_gallery: media_gallery,
   product_details: product_details,
   additional_blocks: additional_blocks

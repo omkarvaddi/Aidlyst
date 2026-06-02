@@ -1,0 +1,53 @@
+{%- doc -%}
+  Resolves the primary external destination for affiliate and provider-guided products.
+
+  @param {product} product_resource - The product to inspect
+  @param {string} [amazon_tracking_id] - Amazon Associates tracking id
+{%- enddoc -%}
+
+{%- liquid
+  assign product_resource = product_resource | default: product
+  assign amazon_tracking_id = amazon_tracking_id | default: 'aidlyst-20'
+  assign supplier_href = ''
+
+  if product_resource != blank
+    assign supplier_namespaces = 'custom,aidlyst,deals' | split: ','
+    assign supplier_keys = 'external_url,partner_url,manufacturer_url,request_info_url,supplier_url,amazon_url,walmart_url,target_url,cvs_url,walgreens_url,best_buy_url,medline_url,ebay_url,costco_url,home_depot_url,wayfair_url' | split: ','
+
+    for namespace in supplier_namespaces
+      for supplier_key in supplier_keys
+        if supplier_href == ''
+          assign supplier_metafield = product_resource.metafields[namespace][supplier_key]
+          assign supplier_value = supplier_metafield.value | default: supplier_metafield
+
+          if supplier_value != blank
+            assign supplier_href = supplier_value | strip
+          endif
+        endif
+      endfor
+    endfor
+  endif
+
+  if supplier_href != blank
+    assign href_first_character = supplier_href | slice: 0
+    assign href_first_two = supplier_href | slice: 0, 2
+
+    unless supplier_href contains '://' or supplier_href contains 'mailto:' or supplier_href contains 'tel:' or href_first_character == '/' or href_first_two == '//'
+      assign supplier_href = 'https://' | append: supplier_href
+    endunless
+
+    assign supplier_href_lowercase = supplier_href | downcase
+
+    if supplier_href_lowercase contains 'amazon.' and amazon_tracking_id != blank
+      unless supplier_href_lowercase contains 'tag='
+        if supplier_href contains '?'
+          assign supplier_href = supplier_href | append: '&tag=' | append: amazon_tracking_id
+        else
+          assign supplier_href = supplier_href | append: '?tag=' | append: amazon_tracking_id
+        endif
+      endunless
+    endif
+  endif
+
+  echo supplier_href
+-%}

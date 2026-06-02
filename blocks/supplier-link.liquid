@@ -1,0 +1,272 @@
+{%- liquid
+  assign block_settings = block.settings
+  assign selected_product = closest.product
+  assign supplier_url = block_settings.supplier_url
+  assign use_metafield = block_settings.use_metafield
+  assign metafield_namespace = block_settings.metafield_namespace | default: 'custom'
+  assign metafield_key = block_settings.metafield_key | default: 'supplier_url'
+  assign supplier_name = block_settings.supplier_name | default: 'Supplier'
+  assign amazon_tracking_id = 'aidlyst-20'
+
+  if use_metafield and selected_product
+    assign metafield_url = selected_product.metafields[metafield_namespace][metafield_key]
+    assign metafield_url_value = metafield_url.value | default: metafield_url
+    if metafield_url_value != blank
+      assign supplier_url = metafield_url_value
+    endif
+  endif
+
+  assign supplier_url = supplier_url | strip
+  assign normalized_url = supplier_url
+  if supplier_url != blank
+    unless supplier_url contains '://'
+      assign normalized_url = 'https://' | append: supplier_url
+    endunless
+  endif
+
+  if metafield_key == 'amazon_url' and normalized_url contains 'amazon.' and amazon_tracking_id != blank
+    unless normalized_url contains 'tag='
+      if normalized_url contains '?'
+        assign normalized_url = normalized_url | append: '&tag=' | append: amazon_tracking_id
+      else
+        assign normalized_url = normalized_url | append: '?tag=' | append: amazon_tracking_id
+      endif
+    endunless
+  endif
+
+  assign button_text = block_settings.button_text | default: 'View supplier site'
+  assign button_style = block_settings.button_style | default: 'button'
+  assign open_in_new_tab = block_settings.open_in_new_tab
+  assign show_icon = block_settings.show_icon
+  assign url_is_valid = false
+
+  if supplier_url != blank
+    if normalized_url contains '://'
+      assign url_is_valid = true
+    endif
+  endif
+-%}
+
+<script
+  src="{{ 'supplier-link.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<supplier-link-handler
+  class="supplier-link-block"
+  data-product-id="{{ selected_product.id }}"
+  data-product-title="{{ selected_product.title | escape }}"
+  data-supplier-name="{{ supplier_name | escape }}"
+  data-supplier-url="{{ normalized_url | escape }}"
+  style="
+    padding-block-start: {{ block_settings.padding_block_start | default: 16 }}px;
+    padding-block-end: {{ block_settings.padding_block_end | default: 16 }}px;
+  "
+  data-testid="supplier-link-block"
+  {{ block.shopify_attributes }}
+>
+  {%- if url_is_valid -%}
+    <a
+      href="{{ normalized_url | escape }}"
+      class="supplier-link-button {{ button_style }}"
+      {% if open_in_new_tab %}target="_blank" rel="noopener noreferrer sponsored"{% endif %}
+      aria-label="View {{ selected_product.title | escape }} at {{ supplier_name | escape }}"
+      data-aidlyst-link-type="supplier"
+      data-aidlyst-supplier="{{ supplier_name | escape }}"
+      data-aidlyst-supplier-key="{{ metafield_key | escape }}"
+      data-aidlyst-supplier-namespace="{{ metafield_namespace | escape }}"
+      data-aidlyst-product-id="{{ selected_product.id }}"
+      data-aidlyst-product-title="{{ selected_product.title | escape }}"
+      data-testid="supplier-link"
+    >
+      {%- if show_icon -%}
+        <span class="supplier-link-icon svg-wrapper" aria-hidden="true">
+          {{- 'icon-external.svg' | inline_asset_content -}}
+        </span>
+      {%- endif -%}
+      <span class="supplier-link-text">{{ button_text }}</span>
+    </a>
+    <p class="supplier-link-disclosure">
+      Paid link. As an Amazon Associate, Aidlyst earns from qualifying purchases.
+    </p>
+  {%- elsif block_settings.show_placeholder or request.design_mode -%}
+    <div class="supplier-link-placeholder color-foreground-secondary">
+      <p class="text-center">Add a supplier URL in product metafields or this block's fallback URL.</p>
+    </div>
+  {%- endif -%}
+</supplier-link-handler>
+
+{%- stylesheet -%}
+  .supplier-link-block {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .supplier-link-disclosure {
+    width: 100%;
+    margin: 0;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .supplier-link-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-sm, 8px);
+    min-height: 48px;
+    text-decoration: none;
+    font-weight: 700;
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .supplier-link-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .supplier-link-icon {
+    display: inline-flex;
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+  }
+
+  .supplier-link-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .supplier-link-placeholder {
+    width: 100%;
+    padding: var(--padding-md, 16px);
+    border: 1px dashed currentColor;
+    border-radius: var(--style-border-radius-buttons-secondary, 12px);
+    text-align: center;
+    font-size: var(--font-paragraph-small--size, 0.875rem);
+  }
+
+  .text-center {
+    text-align: center;
+    margin: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    .supplier-link-button {
+      width: 100%;
+    }
+  }
+{%- endstylesheet -%}
+
+{%- schema -%}
+{
+  "name": "Supplier Link",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows one tracked outbound supplier link. Use Supplier Comparison when a product can have multiple supplier URLs."
+    },
+    {
+      "type": "checkbox",
+      "id": "use_metafield",
+      "label": "Use product metafield",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "metafield_namespace",
+      "label": "Metafield namespace",
+      "default": "custom"
+    },
+    {
+      "type": "text",
+      "id": "metafield_key",
+      "label": "Metafield key",
+      "default": "supplier_url"
+    },
+    {
+      "type": "text",
+      "id": "supplier_name",
+      "label": "Supplier name",
+      "default": "Supplier"
+    },
+    {
+      "type": "url",
+      "id": "supplier_url",
+      "label": "Fallback URL"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "View supplier site"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "default": "button",
+      "options": [
+        {
+          "value": "button",
+          "label": "Primary"
+        },
+        {
+          "value": "button-secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "link",
+          "label": "Link"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open in new tab",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show external-link icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_placeholder",
+      "label": "Show placeholder when URL is not set",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_block_start",
+      "label": "Padding top",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_block_end",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ]
+}
+{%- endschema -%}

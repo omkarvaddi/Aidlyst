@@ -23,10 +23,13 @@
 >
 
 {%- liquid
-  assign og_title = page_title | default: shop.name
+  assign normalized_page_title = page_title | default: shop.name | replace: 'MediDeal', 'Aidlyst' | replace: 'Medideal', 'Aidlyst' | replace: 'medideal', 'Aidlyst'
+  assign normalized_shop_name = shop.name | replace: 'MediDeal', 'Aidlyst' | replace: 'Medideal', 'Aidlyst' | replace: 'medideal', 'Aidlyst'
+  assign og_title = normalized_page_title | default: normalized_shop_name
   assign og_url = canonical_url | default: request.origin
   assign og_type = 'website'
   assign og_description = page_description | default: shop.description | default: shop.name
+  assign og_description = og_description | replace: 'MediDeal', 'Aidlyst' | replace: 'Medideal', 'Aidlyst' | replace: 'medideal', 'Aidlyst'
 
   if request.page_type == 'product'
     assign og_type = 'product'
@@ -108,10 +111,10 @@
 >
 
 <title>
-  {{ page_title }}
+  {{ normalized_page_title }}
   {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
   {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
-  {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+  {%- unless normalized_page_title contains normalized_shop_name %} &ndash; {{ normalized_shop_name }}{% endunless -%}
 </title>
 
 <link
@@ -122,6 +125,6 @@
 {% if page_description %}
   <meta
     name="description"
-    content="{{ page_description | escape }}"
+    content="{{ og_description | escape }}"
   >
 {% endif %}

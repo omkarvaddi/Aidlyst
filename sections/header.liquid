@@ -67,6 +67,7 @@
   # theme-check-enable UniqueStaticBlockId
 
   capture actions
+    echo '<button type="button" class="aidlyst-header-compare" data-aidlyst-compare-open aria-haspopup="dialog">Compare</button>'
     render 'header-actions', customer_account_menu: section.settings.customer_account_menu, display_style: section.settings.actions_display_style, section: section
   endcapture
 
