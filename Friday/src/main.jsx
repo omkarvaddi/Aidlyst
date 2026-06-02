@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react';
 import './styles.css';
+import './overlays.css';
 
 const API = 'http://127.0.0.1:8788/api';
 
