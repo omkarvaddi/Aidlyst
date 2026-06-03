@@ -1,0 +1,273 @@
+<section
+  class="aidlyst-3d"
+  data-aidlyst-3d="{{ section.id }}"
+  data-aidlyst-theme="light"
+  {{ section.shopify_attributes }}
+>
+  <canvas class="aidlyst-3d__canvas" data-aidlyst-canvas aria-hidden="true"></canvas>
+
+  <nav class="aidlyst-3d__nav" aria-label="Aidlyst experience navigation">
+    <a class="aidlyst-3d__brand" href="#aidlyst-cover" aria-label="Aidlyst home">
+      <img
+        class="aidlyst-3d__logo-image"
+        src="{{ 'aidlyst-square-logo.png' | asset_url }}"
+        alt=""
+        width="32"
+        height="32"
+        loading="eager"
+      >
+      <span class="aidlyst-3d__brand-text">Aidlyst</span>
+    </a>
+    <div class="aidlyst-3d__links" aria-label="Page sections">
+      <a href="#aidlyst-explore">Product Intelligence</a>
+      <a href="#aidlyst-method">Method</a>
+      <a href="#aidlyst-readiness">Readiness</a>
+    </div>
+    <div class="aidlyst-3d__access" aria-label="Experience controls">
+      <a class="aidlyst-3d__nav-cta" href="#aidlyst-explore">Explore Products</a>
+      <button type="button" data-aidlyst-theme-toggle aria-pressed="false">Dark</button>
+    </div>
+  </nav>
+
+  <div class="aidlyst-3d__scroll">
+    <section id="aidlyst-cover" class="aidlyst-3d__chapter aidlyst-3d__cover" aria-labelledby="Aidlyst3dTitle-{{ section.id }}">
+      <div class="aidlyst-3d__copy">
+        <h1 id="Aidlyst3dTitle-{{ section.id }}">Product intelligence for confident home-health decisions.</h1>
+        <p>
+          Aidlyst helps people understand medical-adjacent product categories, comparison signals, safety context, and retailer-readiness before a purchase decision. It is a guided research experience, not medical advice.
+        </p>
+        <div class="aidlyst-3d__actions">
+          <a class="aidlyst-3d__button aidlyst-3d__button--primary" href="#aidlyst-explore">Explore Products</a>
+          <a class="aidlyst-3d__button aidlyst-3d__button--secondary" href="#aidlyst-method">See Method</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="aidlyst-explore" class="aidlyst-3d__chapter aidlyst-3d__split" aria-labelledby="AidlystExploreTitle-{{ section.id }}">
+      <div class="aidlyst-3d__panel">
+        <p class="aidlyst-3d__label">Explore products</p>
+        <h2 id="AidlystExploreTitle-{{ section.id }}">Explore the product intelligence layer.</h2>
+        <p>
+          The first release focuses on the decision signals behind home-health equipment: use case, fit, safety context, source quality, cost clarity, and retailer handoff readiness.
+        </p>
+      </div>
+      <div class="aidlyst-3d__stack">
+        <article>
+          <span>01</span>
+          <h3>Mobility and support</h3>
+          <p>Compare fit, stability, sizing, use context, support level, and safety considerations before choosing a product path.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Recovery and braces</h3>
+          <p>Evaluate compression, adjustability, materials, comfort, durability, and when professional guidance should shape the decision.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>First aid and supplies</h3>
+          <p>Organize kit contents, replenishment timing, expiration awareness, storage context, and setting-specific needs.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="aidlyst-readiness" class="aidlyst-3d__chapter aidlyst-3d__truth" aria-labelledby="AidlystTruthTitle-{{ section.id }}">
+      <div class="aidlyst-3d__wide-panel">
+        <p class="aidlyst-3d__label">Trust model</p>
+        <h2 id="AidlystTruthTitle-{{ section.id }}">Built for clarity, not hype.</h2>
+        <div class="aidlyst-3d__truth-grid">
+          <article>
+            <h3>Practical comparison signals.</h3>
+            <p>Aidlyst organizes product attributes, retailer context, sourcing data, evidence notes, and decision tradeoffs.</p>
+          </article>
+          <article>
+            <h3>Medical-language guardrails.</h3>
+            <p>Aidlyst does not diagnose, treat, prescribe, or replace a qualified professional. Safety-sensitive choices should be confirmed by the right expert.</p>
+          </article>
+          <article>
+            <h3>Transparent retailer handoffs.</h3>
+            <p>When a product path is available, Aidlyst should make the handoff, source confidence, and disclosure context easy to understand.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="aidlyst-method" class="aidlyst-3d__chapter aidlyst-3d__split aidlyst-3d__split--reverse" aria-labelledby="AidlystMethodTitle-{{ section.id }}">
+      <div class="aidlyst-3d__panel">
+        <p class="aidlyst-3d__label">Operating method</p>
+        <h2 id="AidlystMethodTitle-{{ section.id }}">How Aidlyst evaluates a category.</h2>
+        <p>
+          The 3D helix is not decoration. It represents Aidlyst pulling evidence, supplier data, category rules, compliance checks, and decision frameworks into one readable customer experience.
+        </p>
+      </div>
+      <div class="aidlyst-3d__process">
+        <div><span>Identify</span><p>Capture category requirements, product facts, supplier data, customer intent, and source confidence.</p></div>
+        <div><span>Verify</span><p>Apply medical-equipment language guardrails, affiliate disclosures, and disciplined claim review.</p></div>
+        <div><span>Compare</span><p>Surface practical tradeoffs without pretending every product fits every person or every situation.</p></div>
+        <div><span>Guide</span><p>Turn structured category knowledge into a cleaner path from research to retailer handoff.</p></div>
+      </div>
+    </section>
+
+    <section class="aidlyst-3d__chapter aidlyst-3d__final" aria-labelledby="AidlystFinalTitle-{{ section.id }}">
+      <div class="aidlyst-3d__wide-panel">
+        <p class="aidlyst-3d__label">Next experience layer</p>
+        <h2 id="AidlystFinalTitle-{{ section.id }}">A smarter front door for health-equipment research.</h2>
+        <p>
+          Each product path should carry category context, source confidence, disclosure notes, and a clear handoff. The 3D experience defines that customer journey.
+        </p>
+        <a class="aidlyst-3d__button aidlyst-3d__button--primary" href="#aidlyst-cover">Replay the flight</a>
+      </div>
+    </section>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-aidlyst-3d="{{ section.id }}"]');
+    if (!root || root.dataset.bound === 'true') return;
+    root.dataset.bound = 'true';
+    document.body.classList.add('aidlyst-3d-active');
+
+    const canvas = root.querySelector('[data-aidlyst-canvas]');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const toggle = root.querySelector('[data-aidlyst-theme-toggle]');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const particleCount = window.innerWidth < 760 ? 340 : 720;
+    const particles = [];
+
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const smooth = (edge0, edge1, value) => {
+      const x = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+      return x * x * (3 - 2 * x);
+    };
+
+    for (let i = 0; i < particleCount; i += 1) {
+      const t = i / particleCount;
+      const turn = t * Math.PI * 12;
+      const strand = i % 2 === 0 ? 0 : Math.PI;
+      const radius = 132 + Math.sin(t * Math.PI * 8) * 18;
+      const branch = i % 9 === 0 ? 1 : 0;
+      particles.push({
+        t,
+        turn,
+        strand,
+        radius: branch ? radius * 0.52 : radius,
+        y: (t - 0.5) * 2300,
+        scatterX: (Math.random() - 0.5) * 1800,
+        scatterY: (Math.random() - 0.5) * 1200,
+        scatterZ: (Math.random() - 0.5) * 1600,
+        size: branch ? 1.1 : 1.8 + Math.random() * 1.8,
+        branch,
+        index: i
+      });
+    }
+
+    const resize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(window.innerWidth * ratio);
+      canvas.height = Math.floor(window.innerHeight * ratio);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+
+    const getProgress = () => {
+      const rect = root.getBoundingClientRect();
+      const total = Math.max(1, rect.height - window.innerHeight);
+      return clamp(-rect.top / total, 0, 1);
+    };
+
+    const draw = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const progress = reducedMotion ? 0.42 : getProgress();
+      const theme = root.dataset.aidlystTheme;
+      const dark = theme === 'dark';
+      const scatter = smooth(0.42, 0.94, progress);
+      const flight = smooth(0.02, 0.52, progress);
+      const fadeForText = 0.72 + smooth(0.12, 0.85, progress) * 0.22;
+      const centerX = width * (0.56 - flight * 0.1);
+      const centerY = height * 0.48;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = dark ? '#071310' : '#f8fbf8';
+      ctx.fillRect(0, 0, width, height);
+
+      const horizon = ctx.createLinearGradient(0, 0, width, height);
+      if (dark) {
+        horizon.addColorStop(0, 'rgba(22, 130, 109, 0.22)');
+        horizon.addColorStop(0.48, 'rgba(45, 108, 223, 0.09)');
+        horizon.addColorStop(1, 'rgba(7, 19, 16, 0.0)');
+      } else {
+        horizon.addColorStop(0, 'rgba(22, 130, 109, 0.12)');
+        horizon.addColorStop(0.55, 'rgba(45, 108, 223, 0.08)');
+        horizon.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      }
+      ctx.fillStyle = horizon;
+      ctx.fillRect(0, 0, width, height);
+
+      const sorted = particles.map((particle) => {
+        const angle = particle.turn + particle.strand + progress * Math.PI * 5.2;
+        const baseX = Math.cos(angle) * particle.radius;
+        const baseZ = Math.sin(angle) * particle.radius;
+        const flyY = particle.y + flight * 1180;
+        const x = baseX * (1 - scatter) + particle.scatterX * scatter;
+        const y = flyY * (1 - scatter) + particle.scatterY * scatter;
+        const z = baseZ * (1 - scatter) + (particle.scatterZ + 220) * scatter + 660 - flight * 620;
+        return { particle, x, y, z };
+      }).sort((a, b) => b.z - a.z);
+
+      sorted.forEach(({ particle, x, y, z }) => {
+        const perspective = 760 / (760 + z);
+        const screenX = centerX + x * perspective;
+        const screenY = centerY + y * perspective;
+        if (screenX < -60 || screenX > width + 60 || screenY < -60 || screenY > height + 60) return;
+
+        const depth = clamp(1 - z / 1500, 0.12, 1);
+        const alpha = (particle.branch ? 0.18 : 0.42) * depth * (1 - scatter * 0.34) * fadeForText;
+        const size = particle.size * perspective * (1.2 + depth * 0.9);
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, Math.max(0.45, size), 0, Math.PI * 2);
+        ctx.fillStyle = dark
+          ? `rgba(${particle.branch ? '226, 177, 76' : '118, 214, 195'}, ${alpha})`
+          : `rgba(${particle.branch ? '226, 177, 76' : '22, 130, 109'}, ${alpha})`;
+        ctx.fill();
+
+        if (!particle.branch && particle.index !== 0 && particle.t % 0.036 < 0.003 && scatter < 0.5) {
+          ctx.globalAlpha = alpha * 0.5;
+          ctx.strokeStyle = dark ? '#76d6c3' : '#2d6cdf';
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(screenX, screenY);
+          ctx.lineTo(centerX - x * perspective * 0.16, screenY + 3 * perspective);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      });
+
+      requestAnimationFrame(draw);
+    };
+
+    resize();
+    draw();
+    window.addEventListener('resize', resize, { passive: true });
+
+    toggle.addEventListener('click', () => {
+      const dark = root.dataset.aidlystTheme !== 'dark';
+      root.dataset.aidlystTheme = dark ? 'dark' : 'light';
+      toggle.textContent = dark ? 'Light' : 'Dark';
+      toggle.setAttribute('aria-pressed', String(dark));
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Aidlyst 3D experience",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Aidlyst 3D experience"
+    }
+  ]
+}
+{% endschema %}
