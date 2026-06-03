@@ -1,0 +1,8 @@
+# Local knowledge base - not Shopify theme files
+obsidian-vault/
+local-preview/
+aidlyst-shopify-theme/
+Friday/
+.github/
+.obsidian/
+*.md

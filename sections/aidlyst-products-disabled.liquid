@@ -1,0 +1,47 @@
+{% liquid
+  assign heading = 'Aidlyst product intelligence is launching soon.'
+  assign body = "The live catalog and checkout path are being held until Aidlyst's review, sourcing, and disclosure systems are ready. For now, this page points back to the product-intelligence experience."
+
+  if request.page_type == 'product'
+    assign heading = 'Product detail pages are being prepared.'
+    assign body = 'Aidlyst is preparing product pages around category context, source confidence, disclosure notes, and a clearer retailer handoff.'
+  elsif request.page_type == 'collection'
+    assign heading = 'Category pages are being prepared.'
+    assign body = 'Aidlyst is organizing category logic, supplier records, and product review standards before presenting browsable product groups.'
+  elsif request.page_type == 'search'
+    assign heading = 'Search will open with the verified catalog.'
+    assign body = 'Aidlyst search will be available when the catalog, sourcing, and medical-language guardrails are ready to support useful results.'
+  elsif request.page_type == 'cart'
+    assign heading = 'Checkout is not available yet.'
+    assign body = 'Aidlyst is prioritizing a clearer product-intelligence layer before opening cart and checkout flows.'
+  elsif request.page_type == '404'
+    assign heading = 'That page is not available.'
+    assign body = 'The link may point to an old product, collection, or shopping page. Start from the Aidlyst product-intelligence experience for the current site journey.'
+  endif
+%}
+
+<section class="aidlyst-disabled aidlyst-commerce-disabled" {{ section.shopify_attributes }}>
+  <div class="aidlyst-disabled__shell">
+    <div class="aidlyst-disabled__panel">
+      <h1>{{ heading }}</h1>
+      <p>{{ body }}</p>
+      <div class="aidlyst-disabled__facts" aria-label="Product readiness status">
+        <span>Catalog review in progress</span>
+        <span>Checkout opens later</span>
+        <span>No medical advice</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Aidlyst products disabled",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Aidlyst products disabled"
+    }
+  ]
+}
+{% endschema %}
