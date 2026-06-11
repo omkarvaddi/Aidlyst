@@ -38,15 +38,34 @@ The repo is intentionally in a transition state:
 
 - The root contains the legacy Shopify theme and Friday tooling already on `main`.
 - The target architecture is Vercel + Supabase + Stripe.
-- New production backend work should land as focused PRs, not as one unreviewable import.
+- `backend/` now contains the local control-plane backend for compliance gating, routing, audit records, and checkout authorization.
+- New production app work should land as focused PRs, not as one unreviewable import.
 - The previous broken `aidlyst-shopify-theme` gitlink has been removed because it had no `.gitmodules` entry and broke clean clone/deploy flows.
+
+## Backend
+
+The backend is in `backend/`. It is a dependency-light Node service that can run locally without provider credentials and is designed to move toward Supabase/Postgres plus Vercel/server infrastructure.
+
+```powershell
+cd backend
+npm run check
+npm test
+npm start
+```
+
+Security defaults:
+
+- local runs bind to `127.0.0.1` by default
+- generated backend data is ignored under `backend/data/`
+- production-like runs require `AIDLYST_BACKEND_API_KEY`
+- development login routes are disabled in production-like environments
+- private backend endpoints reject unauthenticated requests when protected mode is enabled
 
 ## Immediate Verification Targets
 
-The next code PRs should add CI for:
+The next code PRs should add or expand CI for:
 
 - secret scanning
-- backend syntax/tests when backend is merged
 - gateway syntax/tests when gateway is merged
 - Vercel preview build once the web app is created
 - dependency audit and Dependabot

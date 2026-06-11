@@ -34,3 +34,11 @@ Before production traffic:
 - Stripe webhooks must verify signatures and reject replayed or malformed events.
 - Cloudflare/Vercel edge protections must be configured for public routes.
 - No PHI should be collected until legal/HIPAA scope is confirmed.
+
+## Backend Exposure Rules
+
+- Local backend runs bind to `127.0.0.1` by default.
+- Production-like backend runs must set `AIDLYST_BACKEND_API_KEY`.
+- Development login routes must stay disabled in production-like environments.
+- The public website must not receive `AIDLYST_BACKEND_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_ACCESS_TOKEN`, or any equivalent privileged value.
+- Browser code may use only intentionally public `NEXT_PUBLIC_*` values.

@@ -12,6 +12,7 @@ node_modules/
 .wrangler/
 .shopify/
 .vercel/
+backend/data/
 secrets/
 *.pem
 *.key

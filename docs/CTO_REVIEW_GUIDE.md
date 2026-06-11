@@ -10,8 +10,9 @@ This repo needs a technical reviewer to separate the legacy Shopify/theme state 
 
 - `main` contains a legacy Shopify theme plus the `Friday/` tool.
 - `docs/` now records the platform, security, and secret-handling decisions.
+- `backend/` contains the local Aidlyst control-plane backend with tests.
 - A broken `aidlyst-shopify-theme` gitlink was removed because it had no `.gitmodules` mapping and broke clone/deploy flows.
-- The target production app has not yet been fully merged into this GitHub repo.
+- The target production Vercel app has not yet been fully merged into this GitHub repo.
 - Existing code should be treated as transitional until CI, ownership, and deployment boundaries are explicit.
 
 ## Target Architecture
@@ -34,6 +35,7 @@ This repo needs a technical reviewer to separate the legacy Shopify/theme state 
 6. Add CI for builds, tests, dependency audit, secret scanning, and migration checks.
 7. Set an access model for founder, advisor, contractor, and future employee accounts.
 8. Review the legal/product boundary before any Rx, PHI, marketplace payout, or hospital procurement workflow.
+9. Decide whether this backend deploys as Vercel Functions, a separate Node service, or a Supabase-backed API layer.
 
 ## Immediate Questions For CTO
 
@@ -49,6 +51,7 @@ This repo needs a technical reviewer to separate the legacy Shopify/theme state 
 
 - The repo still contains legacy Shopify-theme files, which may distract from the target architecture.
 - Friday tooling is separate from the Aidlyst production app and should not be confused with MVP infrastructure.
+- The backend is file-backed locally; Supabase/Postgres is the production data target.
 - Production checkout must remain blocked until legal, supplier, insurance, and webhook controls are complete.
 - Supabase service-role access must stay server-only.
 - Lovable-generated code must be reviewed before it is trusted.
