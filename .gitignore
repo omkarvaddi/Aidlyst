@@ -3,4 +3,17 @@ Thumbs.db
 node_modules/
 .env
 .env.local
+.env*
+!.env.example
+!.env.*.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
 .shopify/
+.vercel/
+secrets/
+*.pem
+*.key
+*.p12
+*.p8
