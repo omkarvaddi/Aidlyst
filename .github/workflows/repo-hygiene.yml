@@ -1,0 +1,33 @@
+name: Repo Hygiene
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Check for broken submodule config
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files --stage | awk '$1 == "160000" { print $4 }' | grep -q .; then
+            test -f .gitmodules
+            git submodule status
+          fi
+
+      - name: Lightweight secret pattern scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='gh[pousr]_[A-Za-z0-9_]{30,}|shpat_[A-Za-z0-9]{25,}|sk_(live|test)_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}'
+          if git grep -nE "$pattern" -- . ':!docs/SECRET_INVENTORY.md'; then
+            echo "Potential secret-like value found. Rotate if real and remove from git."
+            exit 1
+          fi
+          echo "No high-confidence secret patterns found."

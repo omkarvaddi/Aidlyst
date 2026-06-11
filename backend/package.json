@@ -1,0 +1,15 @@
+{
+  "name": "aidlyst-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aidlyst product sourcing, compliance gating, routing, fulfillment control, and audit backend.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/audit-store.js && node --check src/auth-service.js && node --check src/catalog-store.js && node --check src/control-plane.js && node --check src/csv.js && node --check src/dashboard-service.js && node --check src/domain.js && node --check src/json-utils.js && node --check src/payload-builder.js && node --check src/server.js && node --check src/shopify-draft.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
