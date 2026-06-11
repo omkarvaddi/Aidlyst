@@ -28,6 +28,18 @@ Target platform responsibilities:
 - `docs/PLATFORM_DECISIONS.md`: Vercel, Stripe, Shopify, Supabase, Cloudflare roles.
 - `docs/SECRET_INVENTORY.md`: what secrets are, where they belong, and when to rotate.
 - `docs/SECURITY_AND_LAUNCH_PLAN.md`: immediate security and Worcester-first launch order.
+- `docs/CTO_REVIEW_GUIDE.md`: current repo state, known gaps, and first CTO review questions.
+
+## CTO Review Entry Point
+
+Start with `docs/CTO_REVIEW_GUIDE.md`, then review `docs/SECURITY_AND_LAUNCH_PLAN.md` and `docs/PLATFORM_DECISIONS.md`.
+
+The repo is intentionally in a transition state:
+
+- The root contains the legacy Shopify theme and Friday tooling already on `main`.
+- The target architecture is Vercel + Supabase + Stripe.
+- New production backend work should land as focused PRs, not as one unreviewable import.
+- The previous broken `aidlyst-shopify-theme` gitlink has been removed because it had no `.gitmodules` entry and broke clean clone/deploy flows.
 
 ## Immediate Verification Targets
 

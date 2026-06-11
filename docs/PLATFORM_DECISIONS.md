@@ -70,6 +70,20 @@ Cloudflare remains useful even with Vercel:
 
 One caution: when Cloudflare proxies Vercel, make sure Vercel security products and bot controls still see the correct client IP and that domain verification remains intact. Test this before relying on both layers.
 
+## Do We Still Need Lovable?
+
+No, not as a production platform if Vercel is the main deployment platform.
+
+Lovable can still be useful as a prototyping and product-design tool when the output is exported or synchronized into GitHub and reviewed like normal code. Do not treat Lovable as the source of truth for production security, secrets, database policy, checkout behavior, compliance gates, or deploy approvals.
+
+Recommended role:
+
+- Use Lovable for fast UI exploration, admin-screen drafts, and non-production product demos.
+- Move accepted work into the GitHub repo.
+- Review, test, and deploy through the Vercel/GitHub path.
+- Keep secrets in Vercel, Supabase, Stripe, Cloudflare, GitHub, or a password manager, not in Lovable prompts or generated code.
+- Do not connect real patient, payment, supplier, or admin credentials to a prototype workspace.
+
 ## Migration Order
 
 1. Freeze new Shopify-first work.
